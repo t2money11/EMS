@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.ValidationAPIDAO">
+	
+	<!-- 获取更新时间-->
+	<select id="getUpdateTime" parameterType="map" resultType="java.sql.Timestamp">
+		select 
+			updateTime
+		from ${tableName}
+		where delFlg = '0'
+		<foreach collection="searchConditionList" item="item" index="index" separator="">
+			and ${item.colName} = #{item.colValue}
+		</foreach>
+		limit 1
+	</select>
+	
+	<!-- 设定更新时间-->
+	<update id="setUpdateTime" parameterType="map">
+		update ${tableName} set updateTime
+		where delFlg = '0'
+		<foreach collection="searchConditionList" item="item" index="index" separator="">
+			and ${item.colName} = #{item.colValue}
+		</foreach>
+	</update>
+	
+	<!-- 获取出货单中尚未确定的订单号LIST-->
+	<select id="validateUnConfirmedR" parameterType="map" resultType="String">
+		select 
+			distinct receiptDtl.tradeOrderId
+		from receiptDtl inner join tradeOrder on receiptDtl.tradeOrderId = tradeOrder.tradeOrderId
+			and tradeOrder.delFlg = '0' 
+		where receiptDtl.delFlg = '0' 
+		and receiptDtl.receiptId = #{receiptId}
+		and tradeOrder.status = '0'
+	</select>
+	
+	<!-- 获取投诉单中尚未确定的订单号LIST-->
+	<select id="validateUnConfirmedC" parameterType="map" resultType="String">
+		select 
+			distinct complaintDtl.tradeOrderId
+		from complaintDtl inner join tradeOrder on complaintDtl.tradeOrderId = tradeOrder.tradeOrderId
+			and tradeOrder.delFlg = '0' 
+		where complaintDtl.delFlg = '0' 
+		and complaintDtl.complaintId = #{complaintId}
+		and tradeOrder.status = '0'
+	</select>
+	
+	<!-- ***********************************************************************************************************************************-->
+	<!-- 以下是基础数据修改删除时的整合性验证 ************************************************************************************************-->
+	<!-- ***********************************************************************************************************************************-->
+	
+	<!-- 验证客户权限-->
+	<select id="validateCU" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from customer 
+		<if test="isCustomerRefFlg == '1'.toString()">
+			inner join userCustomerLinkRef on customer.customerId = userCustomerLinkRef.customerId
+			and userCustomerLinkRef.userId = #{userId}
+		</if>
+		where customer.delFlg = '0' 
+		and customer.customerId = #{customerId}
+	</select>
+	
+	<!-- 验证产品是否匹配客户和供应商 带版本-->
+	<select id="validatePVC" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from production 
+		inner join vendor on production.vendorId = vendor.vendorId 
+			and vendor.delFlg = '0' 
+			and vendor.vendorId = #{vendorId}
+		inner join customer on production.customerId = customer.customerId 
+			and customer.delFlg = '0' 
+			and customer.customerId = #{customerId}
+		where production.delFlg = '0' 
+		and production.productionId = #{productionId}
+		and production.versionNo = #{versionNo}
+	</select>
+	
+	<!-- 验证产品是否已经被其他询单引用 不带版本-->
+	<select id="validateIDtl" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from production inner join inquiryDtl on production.productionId = inquiryDtl.productionId 
+			and production.versionNo = inquiryDtl.versionNo
+		where production.delFlg = '0'
+		and inquiryDtl.delFlg = '0'
+		and production.productionId = #{productionId}
+		<if test="inquiryId != null and inquiryId != ''">
+			and inquiryDtl.inquiryId &gt; #{inquiryId}
+		</if>
+	</select>
+	
+	<!-- 产品变更初始化，变更和删除时，验证产品是否已经被引用 带版本-->
+	<select id="validateP" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from production 
+		where 
+		(
+			exists (select 1 from tradeOrderDtl inner join tradeOrder on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrder.delFlg = '0'
+					where production.productionId = tradeOrderDtl.productionId 
+					and production.versionNo = tradeOrderDtl.versionNo
+					<if test="statusRef == '1'.toString()">
+						and tradeOrder.status in ('1', '2')
+					</if>
+					and tradeOrderDtl.delFlg = '0')
+			or  exists (select 1 from complaintDtl where production.productionId = complaintDtl.productionId 
+						and production.versionNo = complaintDtl.versionNo
+						and complaintDtl.delFlg = '0')
+			or  exists (select 1 from inquiryDtl where production.productionId = inquiryDtl.productionId 
+						and production.versionNo = inquiryDtl.versionNo
+						and inquiryDtl.delFlg = '0')
+			or  exists (select 1 from receiptDtl where production.productionId = receiptDtl.productionId  
+						and production.versionNo = receiptDtl.versionNo
+						and receiptDtl.delFlg = '0')
+		)
+		and production.productionId = #{productionId}
+		and production.versionNo = #{versionNo}
+		and production.delFlg = '0'
+	</select>
+	
+	<!-- 删除供应商之前，验证供应商是否已经被引用-->
+	<select id="validateV" parameterType="map" resultType="int">
+		select 
+			count(1)
+			from vendor
+		where 
+		(
+			exists (select 1 from intertradeorder where vendor.vendorId = intertradeorder.vendorId and intertradeorder.delFlg = '0')
+			or  exists (select 1 from production where vendor.vendorId = production.vendorId and production.delFlg = '0')
+		)
+		and vendor.vendorId = #{vendorId}
+	</select>
+	
+	<!-- 删除客户之前，验证客户是否已经被引用-->
+	<select id="validateC" parameterType="map" resultType="int">
+		select 
+			count(1)
+			from customer
+		where 
+		(
+			exists (select 1 from tradeOrder where customer.customerId = tradeOrder.customerId and tradeOrder.delFlg = '0')
+			or  exists (select 1 from complaint where customer.customerId = complaint.customerId and complaint.delFlg = '0')
+			or  exists (select 1 from inquiry where customer.customerId = inquiry.customerId and inquiry.delFlg = '0')
+			or  exists (select 1 from receipt where customer.customerId = receipt.customerId and receipt.delFlg = '0')
+			or  exists (select 1 from usercustomerlinkref where customer.customerId = usercustomerlinkref.customerId and usercustomerlinkref.delFlg = '0')
+			or  exists (select 1 from production where customer.customerId = production.customerId and production.delFlg = '0')
+		)
+		and customer.customerId = #{customerId}
+	</select>
+	
+	<!-- 删除产品种类之前，验证是否已经被产品引用-->
+	<select id="validateCode" parameterType="map" resultType="int">
+		select 
+			count(1)
+			from production
+		where 
+			kind = #{kind}
+	</select>
+</mapper>  

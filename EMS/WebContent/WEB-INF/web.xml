@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app 
+	id="EMS"
+	version="3.0"
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+	
+	<display-name>EMS</display-name>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<listener>   
+    	<listener-class> com.interceptor.SessionListener </listener-class>   
+ 	</listener>  
+ 	<listener>   
+    	<listener-class> com.interceptor.ThreadInitialRequestListener </listener-class>   
+ 	</listener>  
+	<context-param>
+		<!-- 指定Spring上下文配置文件 -->
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath*:applicationContext.xml</param-value>
+	</context-param>
+	<context-param>
+		<param-name>spring.profiles.active</param-name>
+		<param-value>production</param-value>
+	</context-param>
+	<servlet>
+		<servlet-name>EMS</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>EMS</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>default</servlet-name>
+	    <url-pattern>*.jpg</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>default</servlet-name>
+	    <url-pattern>*.js</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+	    <servlet-name>default</servlet-name>
+	    <url-pattern>*.css</url-pattern>
+	</servlet-mapping>  
+	<servlet-mapping>
+	    <servlet-name>default</servlet-name>
+	    <url-pattern>*.gif</url-pattern>
+	</servlet-mapping>  
+	
+	<!-- 设置log4j配置文件路径 -->  
+	<context-param>  
+	    <param-name>log4jConfigLocation</param-name>  
+	    <param-value>WEB-INF/log4j.properties</param-value>  
+	</context-param>  
+	<!-- 开一条watchdog线程每60秒扫描一下配置文件的变化 -->  
+	<context-param>  
+	    <param-name>log4jRefreshInterval</param-name>  
+	    <param-value>600000</param-value>  
+	</context-param>  
+	<listener>  
+	    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>  
+	</listener>   
+	<session-config> 
+		<session-timeout>9999</session-timeout> 
+	</session-config> 
+	<jsp-config>
+	  <taglib>
+	   <taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
+	   <taglib-location>/WEB-INF/tld/c.tld</taglib-location>
+	  </taglib>
+	 </jsp-config>
+	
+</web-app>

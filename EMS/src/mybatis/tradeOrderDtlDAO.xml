@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.TradeOrderDtlDAO">
+	
+	<select id="findByTradeOrderId" parameterType="map" resultType="com.entity.TradeOrderDtl">
+		select
+			tradeOrderDtl.tradeOrderId,
+			production.productionId,
+			production.versionNo,
+			production.descriptionE,
+			production.updateTime productionUpdateTime,
+			date_format(lastDrawUpdateDate,'%Y-%m-%d') as lastDrawUpdateDate,
+			(select date_format(complaintDate,'%Y-%m-%d') from complaint inner join complaintDtl on complaintDtl.complaintId = complaint.complaintId 
+						where complaintDtl.productionId = production.productionId
+						and complaint.delFlg = '0'
+						and complaintDtl.delFlg = '0' 
+						order by complaintDate DESC
+						limit 1) as lastComplaintDate,
+			CONCAT(tradeOrderDtl.quantity,'') as quantity,
+			CONCAT(tradeOrderDtl.unitPrice,'') as unitPrice,
+			CONCAT(tradeOrderDtl.amount,'') as amount,
+			tradeOrderDtl.sendDate1,
+			tradeOrderDtl.sendQuantity1,
+			tradeOrderDtl.sendDate2,
+			tradeOrderDtl.sendQuantity2,
+			tradeOrderDtl.sendDate3,
+			tradeOrderDtl.sendQuantity3,
+			tradeOrderDtl.sendDate4,
+			tradeOrderDtl.sendQuantity4,
+			tradeOrderDtl.feeTitle1,
+			tradeOrderDtl.fee1,
+			tradeOrderDtl.feeTitle2,
+			tradeOrderDtl.fee2,
+			tradeOrderDtl.feeTitle3,
+			tradeOrderDtl.fee3,
+			tradeOrderDtl.feeTitle4,
+			tradeOrderDtl.fee4,
+			(select sum(receiptDtl.quantity) from receiptDtl 
+			where tradeOrderDtl.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo
+			and receiptDtl.delFlg = '0') quantitySent,
+			(select count(1) from complaintDtl 
+			where tradeOrderDtl.tradeOrderId = complaintDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = complaintDtl.productionId
+			and tradeOrderDtl.versionNo = complaintDtl.versionNo
+			and complaintDtl.delFlg = '0') countComplaintDtl,
+			tradeOrderDtl.comment,
+			tradeOrderDtl.createTime,
+			tradeOrderDtl.createUser,
+			tradeOrderDtl.updateTime,
+			tradeOrderDtl.updateUser,
+			tradeOrderDtl.delFlg
+		from tradeOrderDtl inner join production on tradeOrderDtl.productionId = production.productionId
+			and tradeOrderDtl.versionNo = production.versionNo
+			and production.delFlg = '0'
+		where tradeOrderDtl.delFlg = '0' 
+			and tradeOrderDtl.tradeOrderId=#{tradeOrderId} 
+	</select>
+	
+	<delete id="deleteByTradeOrderId" parameterType="map">
+		delete from tradeOrderDtl 
+		where delFlg = '0' 
+			and tradeOrderId=#{tradeOrderId}
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.TradeOrderDtl">
+		insert tradeOrderDtl(
+			tradeOrderId,
+			productionId,
+			versionNo,
+			quantity,
+			unitPrice,
+			amount,
+			sendDate1,
+			sendQuantity1,
+			sendDate2,
+			sendQuantity2,
+			sendDate3,
+			sendQuantity3,
+			sendDate4,
+			sendQuantity4,
+			feeTitle1,
+			fee1,
+			feeTitle2,
+			fee2,
+			feeTitle3,
+			fee3,
+			feeTitle4,
+			fee4,
+			comment,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{tradeOrderId},
+			#{productionId},
+			#{versionNo},
+			CONVERT(#{quantity}, DECIMAL(10, 0)),
+			CONVERT(#{unitPrice}, DECIMAL(15, 3)),
+			CONVERT(#{amount}, DECIMAL(15, 2)),
+			#{sendDate1},
+			#{sendQuantity1},
+			#{sendDate2},
+			#{sendQuantity2},
+			#{sendDate3},
+			#{sendQuantity3},
+			#{sendDate4},
+			#{sendQuantity4},
+			#{feeTitle1},
+			#{fee1},
+			#{feeTitle2},
+			#{fee2},
+			#{feeTitle3},
+			#{fee3},
+			#{feeTitle4},
+			#{fee4},
+			#{comment},
+			#{status},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.TradeOrderDtl">
+		update tradeOrderDtl set
+			quantity=CONVERT(#{quantity}, DECIMAL(10, 0)),
+			unitPrice=CONVERT(#{unitPrice}, DECIMAL(15, 3)),
+			amount=CONVERT(#{amount}, DECIMAL(15, 2)),
+			sendDate1=#{sendDate1},
+			sendQuantity1=#{sendQuantity1},
+			sendDate2=#{sendDate2},
+			sendQuantity2=#{sendQuantity2},
+			sendDate3=#{sendDate3},
+			sendQuantity3=#{sendQuantity3},
+			sendDate4=#{sendDate4},
+			sendQuantity4=#{sendQuantity4},
+			feeTitle1=#{feeTitle1},
+			fee1=#{fee1},
+			feeTitle2=#{feeTitle2},
+			fee2=#{fee2},
+			feeTitle3=#{feeTitle3},
+			fee3=#{fee3},
+			feeTitle4=#{feeTitle4},
+			fee4=#{fee4},
+			comment=#{comment},
+			status=#{status},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			tradeOrderId=#{tradeOrderId}
+			and productionId=#{productionId}
+			and versionNo=#{versionNo}
+	</update>
+</mapper>  

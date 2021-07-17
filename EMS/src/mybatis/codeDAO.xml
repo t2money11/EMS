@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.CodeDAO">
+
+	<select id="selectCodeByCategoryId" resultType="com.entity.Code">
+		select 
+			categoryId,
+			codeId,
+			codeName
+		from code where delFlg = '0'
+		order by categoryId, codeId
+	</select>
+	
+	<select id="findCodeByCategoryId" parameterType="map" resultType="com.entity.Code">
+		select
+			categoryId,
+			codeId,
+			codeName
+		from code where delFlg = '0'
+			and categoryId=#{categoryId} 
+	</select>
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Code">
+		select
+			categoryId,
+			codeId,
+			codeName
+		from code where delFlg = '0'
+			and categoryId=#{categoryId} 
+			and codeId=#{codeId} 
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Code">
+		delete from code 
+		where delFlg = '0' 
+			and codeId=#{codeId} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.Code">
+		insert code(
+			categoryId,
+			codeId,
+			codeName,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{categoryId},
+			#{codeId},
+			#{codeName},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+</mapper>  

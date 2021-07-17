@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.InterTradeOrderDtlDAO">
+	
+	<select id="findByInterTradeOrderId" parameterType="map" resultType="com.entity.InterTradeOrderDtl">
+		select
+			interTradeOrderDtl.interTradeOrderId,
+			production.productionId,
+			production.versionNo,
+			production.productionIdVendor,
+			production.descriptionC,
+			CONCAT(interTradeOrderDtl.volume,'') as volume,
+			CONCAT(interTradeOrderDtl.grossWeight,'') as grossWeight,
+			CONCAT(interTradeOrderDtl.netWeight,'') as netWeight,
+			CONCAT(interTradeOrderDtl.inside,'') as inside,
+			CONCAT(interTradeOrderDtl.outside,'') as outside,
+			CONCAT(interTradeOrderDtl.quantity,'') as quantity,
+			interTradeOrderDtl.unitPrice,
+			interTradeOrderDtl.amount,
+			interTradeOrderDtl.sendDate1,
+			interTradeOrderDtl.sendQuantity1,
+			interTradeOrderDtl.sendDate2,
+			interTradeOrderDtl.sendQuantity2,
+			interTradeOrderDtl.sendDate3,
+			interTradeOrderDtl.sendQuantity3,
+			interTradeOrderDtl.sendDate4,
+			interTradeOrderDtl.sendQuantity4,
+			interTradeOrderDtl.feeTitle1,
+			interTradeOrderDtl.fee1,
+			interTradeOrderDtl.feeTitle2,
+			interTradeOrderDtl.fee2,
+			interTradeOrderDtl.feeTitle3,
+			interTradeOrderDtl.fee3,
+			interTradeOrderDtl.feeTitle4,
+			interTradeOrderDtl.fee4,
+			interTradeOrderDtl.comment,
+			interTradeOrderDtl.createTime,
+			interTradeOrderDtl.createUser,
+			interTradeOrderDtl.updateTime,
+			interTradeOrderDtl.updateUser,
+			interTradeOrderDtl.delFlg
+		from interTradeOrderDtl inner join production on interTradeOrderDtl.productionId = production.productionId
+			and interTradeOrderDtl.versionNo = production.versionNo
+			and production.delFlg = '0'
+		where interTradeOrderDtl.delFlg = '0' 
+			and interTradeOrderDtl.interTradeOrderId=#{interTradeOrderId} 
+	</select>
+	
+	<delete id="deleteByTradeOrderId" parameterType="map">
+		delete interTradeOrderDtl from interTradeOrderDtl, interTradeOrder
+		where interTradeOrderDtl.delFlg = '0' 
+			and interTradeOrder.delFlg = '0'
+			and interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId
+			and interTradeOrder.tradeOrderId=#{tradeOrderId}
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.InterTradeOrderDtl">
+		insert interTradeOrderDtl(
+			interTradeOrderId,
+			productionId,
+			versionNo,
+			quantity,
+			unitPrice,
+			amount,
+			sendDate1,
+			sendQuantity1,
+			sendDate2,
+			sendQuantity2,
+			sendDate3,
+			sendQuantity3,
+			sendDate4,
+			sendQuantity4,
+			feeTitle1,
+			fee1,
+			feeTitle2,
+			fee2,
+			feeTitle3,
+			fee3,
+			feeTitle4,
+			fee4,
+			volume,
+			grossWeight,
+			netWeight,
+			inside,
+			outside,
+			comment,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{interTradeOrderId},
+			#{productionId},
+			#{versionNo},
+			CONVERT(#{quantity}, DECIMAL(10, 0)),
+			CONVERT(#{unitPrice}, DECIMAL(15, 2)),
+			CONVERT(#{amount}, DECIMAL(15, 2)),
+			#{sendDate1},
+			#{sendQuantity1},
+			#{sendDate2},
+			#{sendQuantity2},
+			#{sendDate3},
+			#{sendQuantity3},
+			#{sendDate4},
+			#{sendQuantity4},
+			#{feeTitle1},
+			#{fee1},
+			#{feeTitle2},
+			#{fee2},
+			#{feeTitle3},
+			#{fee3},
+			#{feeTitle4},
+			#{fee4},
+			CONVERT(#{volume}, DECIMAL(10, 4)),
+			CONVERT(#{grossWeight}, DECIMAL(10, 2)),
+			CONVERT(#{netWeight}, DECIMAL(10, 2)),
+			#{inside},
+			#{outside},
+			#{comment},
+			#{status},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.InterTradeOrderDtl">
+		update interTradeOrderDtl set
+			quantity=CONVERT(#{quantity}, DECIMAL(10, 0)),
+			unitPrice=CONVERT(#{unitPrice}, DECIMAL(15, 2)),
+			amount=CONVERT(#{amount}, DECIMAL(15, 2)),
+			sendDate1=#{sendDate1},
+			sendQuantity1=#{sendQuantity1},
+			sendDate2=#{sendDate2},
+			sendQuantity2=#{sendQuantity2},
+			sendDate3=#{sendDate3},
+			sendQuantity3=#{sendQuantity3},
+			sendDate4=#{sendDate4},
+			sendQuantity4=#{sendQuantity4},
+			feeTitle1=#{feeTitle1},
+			fee1=#{fee1},
+			feeTitle2=#{feeTitle2},
+			fee2=#{fee2},
+			feeTitle3=#{feeTitle3},
+			fee3=#{fee3},
+			feeTitle4=#{feeTitle4},
+			fee4=#{fee4},
+			volume=CONVERT(#{volume}, DECIMAL(10, 4)),
+			grossWeight=CONVERT(#{grossWeight}, DECIMAL(10, 2)),
+			netWeight=CONVERT(#{netWeight}, DECIMAL(10, 2)),
+			inside=#{inside},
+			outside=#{outside},
+			comment=#{comment},
+			status=#{status},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			interTradeOrderId=#{interTradeOrderId}
+			and productionId=#{productionId}
+			and versionNo=#{versionNo}
+	</update>
+</mapper>  

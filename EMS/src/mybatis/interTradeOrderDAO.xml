@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.InterTradeOrderDAO">
+	
+	<select id="findByTradeOrderId" parameterType="map" resultType="com.entity.InterTradeOrder">
+		select
+			interTradeOrder.interTradeOrderId,
+			date_format(interTradeOrder.interTradeCreateDate,'%Y-%m-%d') as interTradeCreateDate,
+			date_format(interTradeOrder.interTradeConfirmDate,'%Y-%m-%d') as interTradeConfirmDate,
+			date_format(interTradeOrder.recieveDate,'%Y-%m-%d') as recieveDate,
+			interTradeOrder.sendMode,
+			interTradeOrder.tradeOrderId,
+			vendor.vendorId,
+			vendor.vendorName,
+			vendor.vendorFullName,
+			vendor.location,
+			vendor.updateTime vendorUpdateTime,
+			CONCAT(interTradeOrder.advancePayment,'') as advancePayment,
+			date_format(interTradeOrder.advancePaymentDate,'%Y-%m-%d') as advancePaymentDate,
+			CONCAT(interTradeOrder.advancePaymentDiscountRate,'') as advancePaymentDiscountRate,
+			interTradeOrder.comment,
+			CONCAT(interTradeOrder.amountTtl,'') as amountTtl,
+			interTradeOrder.createTime,
+			interTradeOrder.createUser,
+			interTradeOrder.updateTime,
+			interTradeOrder.updateUser,
+			interTradeOrder.delFlg
+		from interTradeOrder inner join vendor on interTradeOrder.vendorId = vendor.vendorId
+			and vendor.delFlg = '0'
+		where interTradeOrder.delFlg = '0' 
+			and interTradeOrder.tradeOrderId=#{tradeOrderId} 
+	</select>
+	
+	<select id="findAdvancePayment" parameterType="map" resultType="com.entity.InterTradeOrder">
+		select distinct
+			tradeOrder.contractNo,
+			vendor.vendorName,
+			interTradeOrder.advancePayment,
+			interTradeOrder.advancePaymentDate,
+			interTradeOrder.advancePaymentDiscountRate
+		from receipt
+		inner join receiptDtl on receipt.receiptId = receiptDtl.receiptId and receiptDtl.delFlg = '0'
+		inner join interTradeOrder on receiptDtl.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+		inner join tradeOrder on interTradeOrder.tradeOrderId = tradeOrder.tradeOrderId and tradeOrder.delFlg = '0'
+		inner join vendor on interTradeOrder.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		where receipt.delFlg = '0' 
+			and receipt.receiptId=#{receiptId} 
+			and interTradeOrder.advancePaymentDiscountRate is not null 
+		order by tradeOrder.contractNo, interTradeOrder.vendorId
+	</select>
+	
+	<delete id="deleteByTradeOrderId" parameterType="map">
+		delete from interTradeOrder 
+		where delFlg = '0' 
+			and tradeOrderId=#{tradeOrderId}
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.InterTradeOrder">
+		insert interTradeOrder(
+			interTradeOrderId,
+			interTradeCreateDate,
+			interTradeConfirmDate,
+			recieveDate,
+			sendMode,
+			tradeOrderId,
+			vendorId,
+			advancePayment,
+			advancePaymentDate,
+			advancePaymentDiscountRate,
+			comment,
+			amountTtl,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{interTradeOrderId},
+			str_to_date(#{interTradeCreateDate},'%Y-%m-%d'),
+			str_to_date(#{interTradeConfirmDate},'%Y-%m-%d'),
+			str_to_date(#{recieveDate},'%Y-%m-%d'),
+			#{sendMode},
+			#{tradeOrderId},
+			#{vendorId},
+			CONVERT(#{advancePayment}, DECIMAL(15, 2)),
+			str_to_date(#{advancePaymentDate},'%Y-%m-%d'),
+			CONVERT(#{advancePaymentDiscountRate}, DECIMAL(10, 2)),
+			#{comment},
+			CONVERT(#{amountTtl}, DECIMAL(15, 2)),
+			#{status},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.InterTradeOrder">
+		update interTradeOrder set
+			interTradeCreateDate=str_to_date(#{interTradeCreateDate},'%Y-%m-%d'),
+			interTradeConfirmDate=str_to_date(#{interTradeConfirmDate},'%Y-%m-%d'),
+			recieveDate=str_to_date(#{recieveDate},'%Y-%m-%d'),
+			sendMode=#{sendMode},
+			tradeOrderId=#{tradeOrderId},
+			vendorId=#{vendorId},
+			advancePayment=CONVERT(#{advancePayment}, DECIMAL(15, 2)),
+			advancePaymentDate=str_to_date(#{advancePaymentDate},'%Y-%m-%d'),
+			advancePaymentDiscountRate=CONVERT(#{advancePaymentDiscountRate}, DECIMAL(10, 2)),
+			comment=#{comment},
+			amountTtl=CONVERT(#{amountTtl}, DECIMAL(15, 2)),
+			status=#{status},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			interTradeOrderId=#{interTradeOrderId}
+	</update>
+</mapper>  

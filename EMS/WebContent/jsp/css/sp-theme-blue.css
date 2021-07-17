@@ -1,0 +1,277 @@
+/* =============================================================================
+ * Sparkplug Theme "Blue"
+ * ============================================================================= */
+.ielt10 .btn-primary {
+  background-color: #486cef;
+}
+.ielt10 .btn-primary:hover,
+.ielt10 .btn-primary:active,
+.ielt10 .btn-primary.active,
+.ielt10 .btn-primary.disabled,
+.ielt10 .btn-primary[disabled] {
+  background-color: #3159ed;
+}
+.ielt10 .btn-primary:active,
+.ielt10 .btn-primary.active {
+  background-color: #1946eb;
+}
+/* プライマリーボタンの背景色をテーマカラーに変更 */
+.btn-primary {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #3b61ee;
+  background-image: -moz-linear-gradient(top, #486cef, #2752ec);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#486cef), to(#2752ec));
+  background-image: -webkit-linear-gradient(top, #486cef, #2752ec);
+  background-image: -o-linear-gradient(top, #486cef, #2752ec);
+  background-image: linear-gradient(to bottom, #486cef, #2752ec);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff486cef', endColorstr='#ff2752ec', GradientType=0);
+  border-color: #2752ec #2752ec #1034b7;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  *background-color: #2752ec;
+  /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  color: #ffffff;
+  background-color: #2752ec;
+  *background-color: #1441e6;
+}
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #123bce \9;
+}
+/* body要素に適用するclass。背景を明るいテーマカラーに変更 */
+.sp-theme-body-colored {
+  background: #f5f6fe;
+  /* 背景画像用スタイル ======================================================== */
+  /*background: url("../img/bg/bg-light1.jpg") center top no-repeat @theme-light-color;
+  background-attachment: fixed;
+  background-size: cover; */
+  /* 背景画像用スタイル ======================================================== */
+
+}
+.sp-theme-body-colored .well {
+  border: 2px solid #bdc2f9;
+  background: #FFF;
+}
+.sp-theme-body-colored .form-actions {
+  background: #FFF;
+}
+.sp-theme-body-colored .alert-danger,
+.sp-theme-body-colored .alert-error {
+  border-color: #c00;
+}
+.sp-theme-body-colored .navbar-inner {
+  border-bottom-color: #a4aae9;
+}
+.sp-theme-body-colored .navbar-inverse .navbar-inner {
+  border-bottom-color: #252525;
+}
+/* body要素に適用するclass。背景を黒系に変更 */
+.sp-theme-body-dark {
+  background: #333;
+  /* 背景画像用スタイル ======================================================== */
+  /* background: url("../img/bg/bg-dark1.jpg") center top no-repeat #333;
+  background-attachment: fixed;
+  background-size: cover; */
+  /* 背景画像用スタイル ======================================================== */
+
+}
+.sp-theme-body-dark > .container > .page-header,
+.sp-theme-body-dark > .container > h1,
+.sp-theme-body-dark > .container > h2,
+.sp-theme-body-dark > .container > h3,
+.sp-theme-body-dark > .container > h4,
+.sp-theme-body-dark > .container > h5,
+.sp-theme-body-dark > .container > h6,
+.sp-theme-body-dark > .container > p,
+.sp-theme-body-dark .maincontent > .page-header,
+.sp-theme-body-dark .maincontent > h1,
+.sp-theme-body-dark .maincontent > h2,
+.sp-theme-body-dark .maincontent > h3,
+.sp-theme-body-dark .maincontent > h4,
+.sp-theme-body-dark .maincontent > h5,
+.sp-theme-body-dark .maincontent > h6,
+.sp-theme-body-dark .maincontent > p,
+.sp-theme-body-dark .maincontent > .row-fluid h1,
+.sp-theme-body-dark .maincontent > .row-fluid h2,
+.sp-theme-body-dark .maincontent > .row-fluid h3,
+.sp-theme-body-dark .maincontent > .row-fluid h4,
+.sp-theme-body-dark .maincontent > .row-fluid h5,
+.sp-theme-body-dark .maincontent > .row-fluid h6,
+.sp-theme-body-dark .maincontent > .row-fluid p,
+.sp-theme-body-dark .fixed-sidenav > .page-header,
+.sp-theme-body-dark .fixed-sidenav > h1,
+.sp-theme-body-dark .fixed-sidenav > h2,
+.sp-theme-body-dark .fixed-sidenav > h3,
+.sp-theme-body-dark .fixed-sidenav > h4,
+.sp-theme-body-dark .fixed-sidenav > h5,
+.sp-theme-body-dark .fixed-sidenav > h6,
+.sp-theme-body-dark .fixed-sidenav > p,
+.sp-theme-body-dark .hero-unit {
+  color: #ccc;
+}
+.sp-theme-body-dark .hero-unit {
+  -webkit-text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.25);
+  -moz-text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.25);
+  -ms-text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.25);
+  -o-text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.25);
+}
+.sp-theme-body-dark .maincontent > .row-fluid p a,
+.sp-theme-body-dark .maincontent .page-header .step-indicator li > a,
+.sp-theme-body-dark .maincontent .page-header .step-indicator li > span,
+.sp-theme-body-dark .titledbox-inverse a {
+  color: #fff;
+}
+.sp-theme-body-dark .page-header .step-indicator li > a:hover {
+  background: #555;
+}
+.sp-theme-body-dark .page-header {
+  border-color: #486cef;
+}
+.sp-theme-body-dark .well,
+.sp-theme-body-dark .form-actions {
+  border-width: 0;
+  background: #111;
+}
+.sp-theme-body-dark .titledbox .well,
+.sp-theme-body-dark .titledbox .form-actions {
+  background: #fff;
+}
+.sp-theme-body-dark .titledbox .form-actions {
+  border-width: 1px 0 0;
+}
+.sp-theme-body-dark .alert-danger,
+.sp-theme-body-dark .alert-error {
+  border-color: #c00;
+}
+.ielt9 html {
+  min-height: 100%;
+}
+/* ヘッダー（nicenavbar） */
+.nicenavbar {
+  border-top: 4px solid #10218B;
+  -webkit-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.05);
+  -moz-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.05);
+  -ms-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.05);
+  -o-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.05);
+  box-shadow: 0 4px 0 rgba(42, 54, 177, 0.05);
+}
+.nicenavbar .navbar-inner {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -ms-box-shadow: none;
+  -o-box-shadow: none;
+  box-shadow: none;
+}
+.nicenavbar.navbar-inverse {
+  -webkit-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.15);
+  -moz-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.15);
+  -ms-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.15);
+  -o-box-shadow: 0 4px 0 rgba(42, 54, 177, 0.15);
+  box-shadow: 0 4px 0 rgba(42, 54, 177, 0.15);
+}
+.navbar-inner {
+  border-bottom-color: #cdd1f3;
+}
+.navbar-inverse .navbar-inner {
+  border-bottom-color: #252525;
+}
+/* Bootstrapドロップダウンの項目ハイライト */
+.dropdown-menu li > a:hover,
+.dropdown-menu li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-menu .active > a,
+.dropdown-menu .active > a:hover {
+  background-color: #6874f2;
+  background-image: none;
+  filter: none;
+}
+/* nav-list や pill のアクティブ時背景 */
+.nav-list > .active > a,
+.nav-list > .active > a:hover,
+.nav-pills > .active > a,
+.nav-pills > .active > a:hover {
+  background-color: #7681f4;
+}
+/* ステップ表示のアクティブ時背景 */
+.page-header .step-indicator .active > a,
+.page-header .step-indicator .active > span {
+  background-color: #7681f4;
+}
+/* navbar用フラットスタイル */
+.sp-theme-navbar-flat {
+  background: #FFF;
+}
+.sp-theme-navbar-flat .navbar-inner {
+  background: none;
+  filter: none;
+  /* グロナビのドロップダウン項目ハイライト */
+
+}
+.sp-theme-navbar-flat .navbar-inner .nav .active > a {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -ms-box-shadow: none;
+  -o-box-shadow: none;
+  box-shadow: none;
+  background: none;
+  color: #486cef;
+}
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.open > .dropdown-toggle,
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.active > .dropdown-toggle,
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.open.active > .dropdown-toggle {
+  background: none;
+  color: #486cef;
+}
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.open > .dropdown-toggle .caret,
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.active > .dropdown-toggle .caret,
+.sp-theme-navbar-flat .navbar-inner .nav li.dropdown.open.active > .dropdown-toggle .caret {
+  border-top-color: #486cef;
+  border-bottom-color: #486cef;
+}
+/* navbar-inverse用フラットスタイル */
+.sp-theme-navbar-flat-inverse {
+  background: #111;
+}
+.sp-theme-navbar-flat-inverse .navbar-inner {
+  background: none;
+  filter: none;
+  -webkit-text-shadow: none;
+  -moz-text-shadow: none;
+  -ms-text-shadow: none;
+  -o-text-shadow: none;
+  text-shadow: none;
+}
+.sp-theme-navbar-flat-inverse .navbar-inner .nav .active > a {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  -ms-box-shadow: none;
+  -o-box-shadow: none;
+  box-shadow: none;
+  background: none;
+  color: #ecf0fd;
+}
+/* 透明なヘッダー */
+.sp-theme-navbar-transparent {
+  background: none;
+}
+/* [IE8] 背景画像を画面いっぱいに表示するためのPolyfill読み込み */
+.ielt9 .sp-theme-body-colored,
+.ielt9 .sp-theme-body-dark {
+  /* The url is relative to the document, not to the css file! */
+
+  /* Prefer absolute urls to avoid confusion. */
+
+  -ms-behavior: url("../../themes/utils/backgroundsize.htc");
+  background-repeat: repeat-x;
+}

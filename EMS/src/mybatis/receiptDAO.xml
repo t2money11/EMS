@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.ReceiptDAO">
+	
+	<select id="validateRelateReceipt" parameterType="map" resultType="int">
+		select
+			count(1)
+		from receipt inner join customer on receipt.customerId = customer.customerId and customer.delFlg = '0'
+		where receipt.delFlg = '0' 
+		<if test="receiptNo != null and receiptNo != ''">
+			and receiptNo=#{receiptNo}
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and receipt.customerId=#{customerId} 
+		</if>
+		<if test="relateReceiptNo != null and relateReceiptNo != ''">
+			and receipt.relateReceiptNo=#{relateReceiptNo} 
+		</if>
+	</select>
+	
+	<select id="validateDuplicatedReceiptNo" parameterType="map" resultType="int">
+		select
+			count(1)
+		from receipt
+		where delFlg = '0'
+		<if test="receiptId != null and receiptId != ''">
+			and receiptId &lt;&gt; #{receiptId} 
+		</if>
+		<if test="receiptNo != null and receiptNo != ''">
+			and receiptNo=#{receiptNo} 
+		</if>
+	</select>
+	
+	<select id="getReceiptId4New" parameterType="map" resultType="String">
+		select
+			max(receiptId)
+		from receipt
+		where receiptId like "%"#{nowDate}"%"
+			and delFlg = '0'
+	</select>
+	
+	<select id="getReceiptNo4New" parameterType="map" resultType="String">
+		select
+			max(receiptNo)
+		from receipt
+		where receiptNo like #{nowYear}"YCFT18%"
+			and delFlg = '0'
+			and receiptMode = '1'
+	</select>
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Receipt">
+		select
+			receiptId,
+			date_format(receiptDate,'%Y-%m-%d') as receiptDate,
+			receiptNo,
+			mark,
+			customer.customerId,
+			customer.customerName,
+			customer.customerFullName,
+			customer.country,
+			customer.location,
+			customer.freightTerms,
+			customer.portOfLoading,
+			customer.portOfDestination,
+			customer.paymentTerms,
+			customer.consignee,
+			customer.contact,
+			customer.fax,
+			customer.tel,
+			customer.updateTime customerUpdateTime,
+			date_format(planPostingDate,'%Y-%m-%d') as planPostingDate,
+			date_format(postingDate,'%Y-%m-%d') as postingDate,
+			date_format(ETD,'%Y-%m-%d') as ETD,
+			date_format(ETA,'%Y-%m-%d') as ETA,
+			remint,
+			date_format(goodTime,'%Y-%m-%d') as goodTime,
+			date_format(telexRelease,'%Y-%m-%d') as telexRelease,
+			transportation,
+			date_format(balanceDate,'%Y-%m-%d') as balanceDate,
+			profit,
+			collectionDate,
+			collectionAmount,
+			checkoutNumber,
+			amountTtl4Export,
+			postingTo,
+			postingAmount,
+			receipt.comment,
+			receipt.receiptMode,
+			receipt.clearanceMode,
+			receipt.relateReceiptNo,
+			receipt.createTime,
+			receipt.createUser,
+			receipt.updateTime,
+			receipt.updateUser,
+			receipt.delFlg
+		from receipt inner join customer on receipt.customerId = customer.customerId and customer.delFlg = '0'
+		where receipt.delFlg = '0' 
+			and receiptId=#{receiptId}
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.Receipt">
+		select
+			receiptId,
+			date_format(receiptDate,'%Y-%m-%d') as receiptDate,
+			receiptNo,
+			mark,
+			customer.customerId,
+			customer.customerName,
+			customer.customerFullName,
+			customer.country,
+			customer.location,
+			customer.freightTerms,
+			customer.portOfLoading,
+			customer.portOfDestination,
+			customer.paymentTerms,
+			customer.consignee,
+			customer.contact,
+			customer.fax,
+			customer.tel,
+			date_format(planPostingDate,'%Y-%m-%d') as planPostingDate,
+			date_format(postingDate,'%Y-%m-%d') as postingDate,
+			date_format(ETD,'%Y-%m-%d') as ETD,
+			date_format(ETA,'%Y-%m-%d') as ETA,
+			remint,
+			date_format(goodTime,'%Y-%m-%d') as goodTime,
+			date_format(telexRelease,'%Y-%m-%d') as telexRelease,
+			transportation,
+			date_format(balanceDate,'%Y-%m-%d') as balanceDate,
+			profit,
+			collectionDate,
+			collectionAmount,
+			checkoutNumber,
+			amountTtl4Export,
+			postingTo,
+			postingAmount,
+			receipt.comment,
+			receipt.receiptMode,
+			receipt.clearanceMode,
+			receipt.relateReceiptNo,
+			receipt.createTime,
+			receipt.createUser,
+			receipt.updateTime,
+			receipt.updateUser,
+			receipt.delFlg
+		from receipt inner join customer on receipt.customerId = customer.customerId and customer.delFlg = '0'
+		where receipt.delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and receipt.customerId=#{customerId} 
+		</if>
+		<if test="receiptId != null and receiptId != ''">
+			and receiptId like "%"#{receiptId}"%"
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''
+					or po != null and po != ''
+					or contractNo != null and contractNo != ''">
+			and exists (select 1 from receiptDtl where receipt.receiptId = receiptDtl.receiptId 
+			<if test="tradeOrderId != null and tradeOrderId != ''">
+				and receiptDtl.tradeOrderId like "%"#{tradeOrderId}"%"
+			</if>
+			<if test="po != null and po != ''
+						or contractNo != null and contractNo != ''">
+				and exists (select 1 from tradeOrder where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId
+				<if test="po != null and po != ''">
+					and tradeOrder.po like "%"#{po}"%"
+				</if>
+				<if test="contractNo != null and contractNo != ''">
+					and tradeOrder.contractNo like "%"#{contractNo}"%"
+				</if>
+				)
+			</if>
+			)
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from receiptDtl 
+						where UPPER(receiptDtl.productionId) like "%"#{productionId}"%"
+						and receiptDtl.receiptId = receipt.receiptId 
+						and receiptDtl.delFlg = '0')
+		</if>
+		order by receiptId DESC
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from receipt inner join customer on receipt.customerId = customer.customerId and customer.delFlg = '0'
+		where receipt.delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and receipt.customerId=#{customerId} 
+		</if>
+		<if test="receiptId != null and receiptId != ''">
+			and receiptId like "%"#{receiptId}"%"
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''
+					or po != null and po != ''
+					or contractNo != null and contractNo != ''">
+			and exists (select 1 from receiptDtl where receipt.receiptId = receiptDtl.receiptId 
+			<if test="tradeOrderId != null and tradeOrderId != ''">
+				and receiptDtl.tradeOrderId like "%"#{tradeOrderId}"%"
+			</if>
+			<if test="po != null and po != ''
+						or contractNo != null and contractNo != ''">
+				and exists (select 1 from tradeOrder where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId
+				<if test="po != null and po != ''">
+					and tradeOrder.po like "%"#{po}"%"
+				</if>
+				<if test="contractNo != null and contractNo != ''">
+					and tradeOrder.contractNo like "%"#{contractNo}"%"
+				</if>
+				)
+			</if>
+			)
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from receiptDtl 
+						where UPPER(receiptDtl.productionId) like "%"#{productionId}"%"
+						and receiptDtl.receiptId = receipt.receiptId 
+						and receiptDtl.delFlg = '0')
+		</if>
+	</select>
+	
+	<select id="findDtlByKey" parameterType="map" resultType="com.entity.ReceiptDtl">
+		select
+			receiptDtl.receiptId,
+			receiptDtl.tradeOrderId,
+			receiptDtl.productionId,
+			receiptDtl.versionNo,
+			receiptDtl.feeNum,
+			receiptDtl.quantity,
+			interTradeOrder.advancePayment,
+			interTradeOrder.advancePaymentDate,
+			interTradeOrder.advancePaymentDiscountRate,
+			vendor.vendorId,
+			vendor.vendorName,
+			vendor.shortLocation,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			tradeOrder.tradeOrderCreateDate,
+			tradeOrder.updateTime tradeOrderUpdateTime,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			tradeOrderDtl.quantity tQuantity,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			interTradeOrderDtl.quantity iQuantity,
+			(select sum(receiptDtl.quantity) from receiptDtl 
+			where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo) quantitySent,
+			production.hscode,
+			production.productionEName4Export,
+			production.productionCName4Export,
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			production.brand,
+			production.purpose,
+			production.material,
+			production.kind,
+			production.updateTime productionUpdateTime,
+			(select codeName from code where categoryId = 'P_TYPE' and codeId = production.kind) as kindName,
+			case 
+			when receiptdtl.feeNum = '1' and tradeorderdtl.feeTitle1 is not null
+			then tradeorderdtl.feeTitle1
+			when receiptdtl.feeNum = '2' and tradeorderdtl.feeTitle2 is not null
+			then tradeorderdtl.feeTitle2
+			when receiptdtl.feeNum = '3' and tradeorderdtl.feeTitle3 is not null
+			then tradeorderdtl.feeTitle3
+			when receiptdtl.feeNum = '4' and tradeorderdtl.feeTitle4 is not null
+			then tradeorderdtl.feeTitle4
+			when receiptdtl.feeNum = '1' and tradeorderdtl.feeTitle1 is null
+			then interTradeOrderDtl.feeTitle1
+			when receiptdtl.feeNum = '2' and tradeorderdtl.feeTitle2 is null
+			then interTradeOrderDtl.feeTitle2
+			when receiptdtl.feeNum = '3' and tradeorderdtl.feeTitle2 is null
+			then interTradeOrderDtl.feeTitle3
+			when receiptdtl.feeNum = '4' and tradeorderdtl.feeTitle3 is null
+			then interTradeOrderDtl.feeTitle4
+			else production.descriptionE
+			end descriptionE,
+			case 
+			when receiptdtl.feeNum = '1'
+			then tradeorderdtl.fee1
+			when receiptdtl.feeNum = '2'
+			then tradeorderdtl.fee2
+			when receiptdtl.feeNum = '3'
+			then tradeorderdtl.fee3
+			when receiptdtl.feeNum = '4'
+			then tradeorderdtl.fee4
+			end tAmount,
+			case 
+			when receiptdtl.feeNum = '1'
+			then interTradeOrderDtl.fee1
+			when receiptdtl.feeNum = '2'
+			then interTradeOrderDtl.fee2
+			when receiptdtl.feeNum = '3'
+			then interTradeOrderDtl.fee3
+			when receiptdtl.feeNum = '4'
+			then interTradeOrderDtl.fee4
+			end iAmount,
+			receiptDtl.cAmount,
+			tradeOrder.exRate,
+			receiptDtl.createTime,
+			receiptDtl.createUser,
+			receiptDtl.updateTime,
+			receiptDtl.updateUser,
+			receiptDtl.delFlg
+		from receiptDtl 
+		inner join tradeOrder on receiptDtl.tradeOrderId = tradeOrder.tradeOrderId and tradeOrder.delFlg = '0'
+		inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId
+			and receiptDtl.productionId = tradeOrderDtl.productionId 
+			and receiptDtl.versionNo = tradeOrderDtl.versionNo 
+			and tradeOrderDtl.delFlg = '0'
+		inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+		inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId 
+			and receiptDtl.productionId = interTradeOrderDtl.productionId 
+			and receiptDtl.versionNo = interTradeOrderDtl.versionNo 
+			and interTradeOrderDtl.delFlg = '0'
+		inner join production on receiptDtl.productionId = production.productionId 
+			and receiptDtl.versionNo = production.versionNo
+			and production.delFlg = '0'
+		inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		where receiptDtl.delFlg = '0' 
+			and receiptDtl.receiptId=#{receiptId} 
+		order by receiptDtl.tradeOrderId, receiptDtl.productionId, receiptDtl.versionNo, feeNum
+	</select>
+	
+	<select id="findDtl4CByKey" parameterType="map" resultType="com.entity.ReceiptDtl4C">
+		select
+			receiptDtl4C.receiptId,
+			receiptDtl4C.complaintId,
+			receiptDtl4C.tradeOrderId,
+			receiptDtl4C.productionId,
+			receiptDtl4C.versionNo,
+			receiptDtl4C.quantity,
+			vendor.vendorId,
+			vendor.vendorName,
+			vendor.shortLocation,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			tradeOrder.tradeOrderCreateDate,
+			tradeOrder.updateTime tradeOrderUpdateTime,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			complaintDtl.quantity tQuantity,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			complaintDtl.quantity iQuantity,
+			(select sum(receiptDtl4C.quantity) from receiptDtl4C 
+			where complaintDtl.complaintId = receiptDtl4C.complaintId
+			and complaintDtl.tradeOrderId = receiptDtl4C.tradeOrderId 
+			and complaintDtl.productionId = receiptDtl4C.productionId
+			and complaintDtl.versionNo = receiptDtl4C.versionNo
+			and complaintDtl.handleType = '1'
+			and receiptDtl4C.delFlg = '0') quantitySent,
+			production.hscode,
+			production.productionEName4Export,
+			production.productionCName4Export,
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			production.brand,
+			production.purpose,
+			production.material,
+			production.kind,
+			production.updateTime productionUpdateTime,
+			(select codeName from code where categoryId = 'P_TYPE' and codeId = production.kind) as kindName,
+			production.descriptionE,
+			receiptDtl4C.cAmount,
+			complaintDtl.boxAmount,
+			complaint.updateTime complaintUpdateTime,
+			receiptDtl4C.createTime,
+			receiptDtl4C.createUser,
+			receiptDtl4C.updateTime,
+			receiptDtl4C.updateUser,
+			receiptDtl4C.delFlg
+		from receiptDtl4C 
+		inner join tradeOrder on receiptDtl4C.tradeOrderId = tradeOrder.tradeOrderId and tradeOrder.delFlg = '0'
+		inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId
+			and receiptDtl4C.productionId = tradeOrderDtl.productionId 
+			and receiptDtl4C.versionNo = tradeOrderDtl.versionNo 
+			and tradeOrderDtl.delFlg = '0'
+		inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+		inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId 
+			and receiptDtl4C.productionId = interTradeOrderDtl.productionId 
+			and receiptDtl4C.versionNo = interTradeOrderDtl.versionNo 
+			and interTradeOrderDtl.delFlg = '0'
+		inner join production on receiptDtl4C.productionId = production.productionId 
+			and receiptDtl4C.versionNo = production.versionNo
+			and production.delFlg = '0'
+		inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		inner join complaintDtl on complaintDtl.complaintId = receiptDtl4C.complaintId
+			and complaintDtl.tradeOrderId = receiptDtl4C.tradeOrderId
+			and complaintDtl.productionId = receiptDtl4C.productionId 
+			and complaintDtl.versionNo = receiptDtl4C.versionNo 
+			and complaintDtl.handleType = '1'
+			and complaintDtl.delFlg = '0'
+		inner join complaint on complaint.complaintId = complaintDtl.complaintId and complaint.delFlg = '0'
+		where receiptDtl4C.delFlg = '0' 
+			and receiptDtl4C.receiptId=#{receiptId} 
+		order by receiptDtl4C.tradeOrderId, receiptDtl4C.productionId, receiptDtl4C.versionNo, receiptDtl4C.complaintId
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Receipt">
+		delete from receipt 
+		where delFlg = '0' 
+			and receiptId=#{receiptId} 
+	</delete>
+	
+	<delete id="deleteDtl" parameterType="com.entity.Receipt">
+		delete from receiptDtl
+		where delFlg = '0'
+			and receiptId=#{receiptId}
+	</delete>
+	
+	<delete id="deleteDtl4C" parameterType="com.entity.Receipt">
+		delete from receiptDtl4C
+		where delFlg = '0'
+			and receiptId=#{receiptId}
+	</delete>
+	
+	<insert id="update" parameterType="com.entity.Receipt">
+		update receipt set
+			receiptDate=str_to_date(#{receiptDate},'%Y-%m-%d'),
+			receiptNo=#{receiptNo},
+			mark=#{mark},
+			customerId=#{customerId},
+			planPostingDate=str_to_date(#{planPostingDate},'%Y-%m-%d'),
+			postingDate=str_to_date(#{postingDate},'%Y-%m-%d'),
+			ETD=str_to_date(#{ETD},'%Y-%m-%d'),
+			ETA=str_to_date(#{ETA},'%Y-%m-%d'),
+			remint=CONVERT(#{remint}, DECIMAL(15, 2)),
+			goodTime=str_to_date(#{goodTime},'%Y-%m-%d'),
+			telexRelease=str_to_date(#{telexRelease},'%Y-%m-%d'),
+			transportation=#{transportation},
+			balanceDate=str_to_date(#{balanceDate},'%Y-%m-%d'),
+			profit=CONVERT(#{profit}, DECIMAL(15, 2)),
+			collectionDate=str_to_date(#{collectionDate},'%Y-%m-%d'),
+			collectionAmount=CONVERT(#{collectionAmount}, DECIMAL(15, 2)),
+			checkoutNumber=#{checkoutNumber},
+			amountTtl4Export=CONVERT(#{amountTtl4Export}, DECIMAL(15, 2)),
+			postingTo=#{postingTo},
+			postingAmount=#{postingAmount},
+			comment=#{comment},
+			receiptMode=#{receiptMode},
+			clearanceMode=#{clearanceMode},
+			relateReceiptNo=#{relateReceiptNo},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where
+			receiptId=#{receiptId}
+			and delFlg = 0
+	</insert>
+	
+	<insert id="insert" parameterType="com.entity.Receipt">
+		insert receipt(
+			receiptId,
+			receiptDate,
+			receiptNo,
+			mark,
+			customerId,
+			planPostingDate,
+			postingDate,
+			ETD,
+			ETA,
+			remint,
+			goodTime,
+			telexRelease,
+			transportation,
+			balanceDate,
+			profit,
+			collectionDate,
+			collectionAmount,
+			checkoutNumber,
+			amountTtl4Export,
+			postingTo,
+			postingAmount,
+			comment,
+			receiptMode,
+			clearanceMode,
+			relateReceiptNo,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{receiptId},
+			str_to_date(#{receiptDate},'%Y-%m-%d'),
+			#{receiptNo},
+			#{mark},
+			#{customerId},
+			str_to_date(#{planPostingDate},'%Y-%m-%d'),
+			str_to_date(#{postingDate},'%Y-%m-%d'),
+			str_to_date(#{ETD},'%Y-%m-%d'),
+			str_to_date(#{ETA},'%Y-%m-%d'),
+			CONVERT(#{remint}, DECIMAL(15, 2)),
+			str_to_date(#{goodTime},'%Y-%m-%d'),
+			str_to_date(#{telexRelease},'%Y-%m-%d'),
+			#{transportation},
+			str_to_date(#{balanceDate},'%Y-%m-%d'),
+			CONVERT(#{profit}, DECIMAL(15, 2)),
+			str_to_date(#{collectionDate},'%Y-%m-%d'),
+			CONVERT(#{collectionAmount}, DECIMAL(15, 2)),
+			#{checkoutNumber},
+			CONVERT(#{amountTtl4Export}, DECIMAL(15, 2)),
+			#{postingTo},
+			#{postingAmount},
+			#{comment},
+			#{receiptMode},
+			#{clearanceMode},
+			#{relateReceiptNo},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<insert id="insertDtl" parameterType="com.entity.ReceiptDtl">
+		insert receiptDtl(
+			receiptId,
+			tradeOrderId,
+			productionId,
+			versionNo,
+			feeNum,
+			<if test="feeNum == '0'.toString()">
+				quantity,
+			</if>
+			cAmount,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{receiptId},
+			#{tradeOrderId},
+			#{productionId},
+			#{versionNo},
+			#{feeNum},
+			<if test="feeNum == '0'.toString()">
+				CONVERT(#{quantity}, DECIMAL(10, 0)),
+			</if>
+			#{cAmount},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<insert id="insertDtl4C" parameterType="com.entity.ReceiptDtl4C">
+		insert receiptDtl4C(
+			receiptId,
+			complaintId,
+			tradeOrderId,
+			productionId,
+			versionNo,
+			quantity,
+			cAmount,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{receiptId},
+			#{complaintId},
+			#{tradeOrderId},
+			#{productionId},
+			#{versionNo},
+			#{quantity},
+			#{cAmount},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+</mapper>  

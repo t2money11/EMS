@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.UserCustomerLinkRefDAO">
+	
+	<select id="selectUserCustomerLinkRefByCondition" parameterType="map" resultType="com.entity.UserCustomerLinkRef">
+		select 
+			userCustomerLinkRef.userId,
+			user.userNameC userName,
+			userCustomerLinkRef.customerId,
+			customer.customerName
+		from userCustomerLinkRef left join user on user.userId = userCustomerLinkRef.userId
+		left join customer on customer.customerId = userCustomerLinkRef.customerId
+		where userCustomerLinkRef.delFlg = '0'
+		<if test="userId != null and userId != ''">
+			and userCustomerLinkRef.userId=#{userId} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and userCustomerLinkRef.customerId=#{customerId} 
+		</if>
+		<if test="userName != null and userName != ''">
+			and userNameC like "%"#{userName}"%"
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and customerName like "%"#{customerName}"%"
+		</if>
+		order by userId, customerId
+		<if test="pageSize != null and pageSize != ''">
+			limit #{startIndex}, #{pageSize}
+		</if>
+	</select>
+	
+	<select id="selectUserCustomerLinkRefCountByCondition" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from userCustomerLinkRef left join user on user.userId = userCustomerLinkRef.userId
+		left join customer on customer.customerId = userCustomerLinkRef.customerId
+		where userCustomerLinkRef.delFlg = '0'
+		<if test="userId != null and userId != ''">
+			and userCustomerLinkRef.userId=#{userId} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and userCustomerLinkRef.customerId=#{customerId} 
+		</if>
+		<if test="userName != null and userName != ''">
+			and userNameC like "%"#{userName}"%"
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and customerName like "%"#{customerName}"%"
+		</if>
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.UserCustomerLinkRef">
+		delete from userCustomerLinkRef 
+		where delFlg = '0' 
+			and userId=#{userId}
+			and customerId=#{customerId} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.UserCustomerLinkRef">
+		insert UserCustomerLinkRef(
+			userId,
+			customerId,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{userId},
+			#{customerId},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.UserCustomerLinkRef">
+		update userCustomerLinkRef set
+			customerId=#{customerId},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			userId=#{userId}
+			and customerId=#{customerId}
+	</update>
+</mapper>  

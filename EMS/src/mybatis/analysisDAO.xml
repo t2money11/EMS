@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.AnalysisDAO">
+	
+	<select id="productionAnalysis" parameterType="map" resultType="com.entity.TradeOrderPop">
+		select
+			production.productionId,
+			production.descriptionE,
+			production.descriptionC,
+			production.productionEName4Export,
+			production.volume,
+			production.grossWeight,
+			production.netWeight,
+			production.inside,
+			production.outside,
+			tradeOrder.tradeOrderId,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			vendor.vendorId,
+			vendor.vendorName,
+			customer.customerId,
+			customer.customerName,
+			tradeOrderDtl.quantity tQuantity,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			interTradeOrderDtl.quantity iQuantity,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			(select sum(receiptDtl.quantity) from receiptDtl 
+			where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo) quantitySent
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId 
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId 
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo 
+				and interTradeOrderDtl.delFlg = '0'
+			inner join production on tradeOrderDtl.productionId = production.productionId 
+				and tradeOrderDtl.versionNo = production.versionNo 
+				and production.delFlg = '0'
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+			inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+		where tradeOrder.status > '0'
+		<if test="dateFrom != null and dateFrom != ''">
+			and tradeOrder.tradeOrderCreateDate &gt;= date_format(#{dateFrom},'%Y-%m-%d')
+		</if>
+		<if test="dateTo != null and dateTo != ''">
+			and tradeOrder.tradeOrderCreateDate &lt;= date_format(#{dateTo},'%Y-%m-%d')
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by production.productionId, tradeOrder.tradeOrderId DESC
+	</select>
+	
+	<select id="tradeOrderAnalysis" parameterType="map" resultType="com.entity.AnalysisResult">
+		select
+			customer.customerName,
+			date_format(tradeOrder.tradeOrderCreateDate,'%Y') as tradeOrderCreateDate,
+			tradeOrder.tradeOrderId,
+			tradeOrder.contractNo,
+			tradeOrder.po,
+			(select codeName from code where categoryId = 'T_STATUS' and codeId = tradeOrder.status) as statusName,
+			vendor.vendorName,
+			interTradeOrder.interTradeCreateDate,
+			production.productionId,
+			production.versionNo,
+			production.descriptionE,
+			tradeOrder.sendMode tSendMode,
+			tradeOrder.shipment,
+			tradeOrderDtl.quantity tQuantity,
+			tradeOrderDtl.sendDate1 tSendDate1,
+			tradeOrderDtl.sendQuantity1 tSendQuantity1,
+			tradeOrderDtl.sendDate2 tSendDate2,
+			tradeOrderDtl.sendQuantity2 tSendQuantity2,
+			tradeOrderDtl.sendDate3 tSendDate3,
+			tradeOrderDtl.sendQuantity3 tSendQuantity3,
+			tradeOrderDtl.sendDate4 tSendDate4,
+			tradeOrderDtl.sendQuantity4 tSendQuantity4,
+			interTradeOrder.sendMode iSendMode,
+			interTradeOrder.recieveDate,
+			interTradeOrderDtl.quantity iQuantity,
+			interTradeOrderDtl.sendDate1 iSendDate1,
+			interTradeOrderDtl.sendQuantity1 iSendQuantity1,
+			interTradeOrderDtl.sendDate2 iSendDate2,
+			interTradeOrderDtl.sendQuantity2 iSendQuantity2,
+			interTradeOrderDtl.sendDate3 iSendDate3,
+			interTradeOrderDtl.sendQuantity3 iSendQuantity3,
+			interTradeOrderDtl.sendDate4 iSendDate4,
+			interTradeOrderDtl.sendQuantity4 iSendQuantity4,
+			CAST(interTradeOrderDtl.quantity as SIGNED) - (select IFNULL(sum(receiptDtl.quantity), 0) from receiptDtl 
+			where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo) quantityNotSent,
+			R.receiptNo,
+			R.transportation,
+			R.ETD,
+			R.quantity
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId 
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId 
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo 
+				and interTradeOrderDtl.delFlg = '0'
+			inner join production on tradeOrderDtl.productionId = production.productionId 
+				and tradeOrderDtl.versionNo = production.versionNo 
+				and production.delFlg = '0'
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+			inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+			left join (select tradeOrderId, receiptNo, transportation, ETD, productionId, versionNo, quantity from receipt inner join receiptDtl on 
+						receipt.delFlg = '0'
+						and receiptDtl.delFlg = '0'
+						and receipt.receiptId = receiptDtl.receiptId
+						and receiptDtl.feeNum = '0'
+						) R 
+				on R.tradeOrderId = tradeOrder.tradeOrderId 
+				and R.productionId = tradeOrderDtl.productionId 
+				and R.versionNo = tradeOrderDtl.versionNo 
+		where 1 = 1
+		<if test="dateFrom != null and dateFrom != ''">
+			and tradeOrder.tradeOrderCreateDate &gt;= date_format(#{dateFrom},'%Y-%m-%d')
+		</if>
+		<if test="dateTo != null and dateTo != ''">
+			and tradeOrder.tradeOrderCreateDate &lt;= date_format(#{dateTo},'%Y-%m-%d')
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by customer.customerId, tradeOrderCreateDate DESC, tradeOrder.tradeOrderId DESC, vendor.vendorId, production.productionId, production.versionNo, ETD
+	</select>
+	
+	<select id="complaintAnalysis" parameterType="map" resultType="com.entity.AnalysisResult">
+		select
+			customer.customerName,
+			complaintDtl.complaintId,
+			complaint.dealDeadLine,
+			tradeOrder.tradeOrderId,
+			tradeOrder.contractNo,
+			tradeOrder.po,
+			(select codeName from code where categoryId = 'T_STATUS' and codeId = tradeOrder.status) as statusName,
+			vendor.vendorName,
+			production.productionId,
+			production.versionNo,
+			production.descriptionE,
+			complaintDtl.quantity iQuantity,
+			CAST(complaintDtl.quantity as SIGNED) - (select IFNULL(sum(receiptDtl4C.quantity), 0) from receiptDtl4C 
+			where complaintDtl.complaintId = receiptDtl4C.complaintId 
+			and complaintDtl.tradeOrderId = receiptDtl4C.tradeOrderId 
+			and complaintDtl.productionId = receiptDtl4C.productionId
+			and complaintDtl.versionNo = receiptDtl4C.versionNo
+			and complaintDtl.handleType = '1'
+			and receiptDtl4C.delFlg = '0'
+			) quantityNotSent,
+			R.receiptId,
+			R.receiptNo,
+			R.transportation,
+			R.ETD,
+			R.quantity
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join complaintDtl on tradeOrderDtl.tradeOrderId = complaintDtl.tradeOrderId
+				and tradeOrderDtl.productionId = complaintDtl.productionId 
+				and tradeOrderDtl.versionNo = complaintDtl.versionNo 
+				and complaintDtl.handleType = '1'
+				and complaintDtl.delFlg = '0'
+			inner join complaint on complaint.complaintId = complaintDtl.complaintId and complaint.delFlg = '0'
+			inner join production on tradeOrderDtl.productionId = production.productionId 
+				and tradeOrderDtl.versionNo = production.versionNo 
+				and production.delFlg = '0'
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+			inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+			left join (select receipt.receiptId, complaintId, tradeOrderId, receiptNo, transportation, ETD, productionId, versionNo, quantity from receipt inner join receiptDtl4C on 
+						receipt.delFlg = '0'
+						and receiptDtl4C.delFlg = '0'
+						and receipt.receiptId = receiptDtl4C.receiptId
+						) R 
+				on R.complaintId = complaintDtl.complaintId 
+				and R.tradeOrderId = complaintDtl.tradeOrderId 
+				and R.productionId = complaintDtl.productionId
+				and R.versionNo = complaintDtl.versionNo 
+		where 1 = 1
+		<if test="dateFrom != null and dateFrom != ''">
+			and complaint.complaintDate &gt;= date_format(#{dateFrom},'%Y-%m-%d')
+		</if>
+		<if test="dateTo != null and dateTo != ''">
+			and complaint.complaintDate &lt;= date_format(#{dateTo},'%Y-%m-%d')
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by customer.customerId, complaint.dealDeadLine, complaint.complaintId DESC, tradeOrder.tradeOrderId, vendor.vendorId, production.productionId, production.versionNo, ETD
+	</select>
+	
+	<select id="exportInfoAnalysis" parameterType="map" resultType="com.entity.AnalysisResultExportInfo">
+		select
+			receiptId,
+			customer.customerName,
+			receiptNo,
+			amountTtl4Export,
+			customer.portOfLoading
+		from receipt inner join customer on receipt.customerId = customer.customerId 
+			and customer.delFlg = '0'
+		where receipt.delFlg = '0' 
+		and receipt.receiptMode = '1'
+		<if test="yearSelected != null and yearSelected != ''">
+			and date_format(ETD,'%Y') = #{yearSelected}
+		</if>
+		<if test="monthSelected != null and monthSelected != ''">
+			and date_format(ETD,'%m') = #{monthSelected}
+		</if>
+		order by receiptNo
+	</select>
+	
+	<select id="exportInfoAnalysisSub" parameterType="map" resultType="com.entity.Production">
+		select distinct
+			temp.productionCName4Export,
+			temp.HSCode
+		from
+		(
+			select distinct
+				production.productionCName4Export,
+				production.HSCode
+			from receiptDtl inner join production on receiptDtl.productionId = production.productionId 
+				and receiptDtl.versionNo = production.versionNo
+				and production.delFlg = '0'
+			where receiptDtl.delFlg = '0' 
+			and receiptDtl.receiptId = #{receiptId}
+			
+			union all
+			
+			select distinct
+				production.productionCName4Export,
+				production.HSCode
+			from receiptDtl4C inner join production on receiptDtl4C.productionId = production.productionId 
+				and receiptDtl4C.versionNo = production.versionNo
+				and production.delFlg = '0'
+			where receiptDtl4C.delFlg = '0' 
+			and receiptDtl4C.receiptId = #{receiptId}
+		) temp
+	</select>
+	
+	<select id="exportProduction" parameterType="map" resultType="com.entity.Production">
+		select
+			customerId,
+			(select customerName from customer where customer.customerId = production.customerId limit 1) as customerName,
+			productionId,
+			versionNo,
+			descriptionC,
+			descriptionE,
+			material,
+			size,
+			surface
+		from productionView production
+		where delFlg = '0'
+		order by customerId, productionId
+	</select>
+	
+	<select id="profitAnalysis" parameterType="map" resultType="com.entity.AnalysisProfit">
+		select
+			userCustomerLinkRef.userId,
+			customer.customerName,
+			tradeOrder.tradeOrderId,
+			tradeOrder.contractNo,
+			vendor.vendorName,
+			production.productionId,
+			production.versionNo,
+			production.taxReturnRate,
+			tradeOrder.sendMode tSendMode,
+			tradeOrder.shipment,
+			interTradeOrder.interTradeOrderId,
+			interTradeOrder.advancePayment,
+			interTradeOrder.advancePaymentDiscountRate,
+			tradeOrderDtl.quantity tQuantity,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			tradeOrderDtl.fee1 tFee1,
+			tradeOrderDtl.fee2 tFee2,
+			tradeOrderDtl.fee3 tFee3,
+			tradeOrderDtl.fee4 tFee4,
+			tradeOrderDtl.sendDate1 tSendDate1,
+			tradeOrderDtl.sendDate2 tSendDate2,
+			tradeOrderDtl.sendDate3 tSendDate3,
+			tradeOrderDtl.sendDate4 tSendDate4,
+			interTradeOrderDtl.quantity iQuantity,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			interTradeOrderDtl.fee1 iFee1,
+			interTradeOrderDtl.fee2 iFee2,
+			interTradeOrderDtl.fee3 iFee3,
+			interTradeOrderDtl.fee4 iFee4,
+			R.receiptId,
+			R.feeNum,
+			R.planPostingDate,
+			R.balanceDate,
+			R.postingDate,
+			R.quantity quantitySent,
+			interTradeOrderDtl.quantity - (select sum(receiptDtl.quantity) from receiptDtl 
+			where tradeOrder.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo) quantityNotSent
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId 
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId 
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo 
+				and interTradeOrderDtl.delFlg = '0'
+			inner join production on tradeOrderDtl.productionId = production.productionId 
+				and tradeOrderDtl.versionNo = production.versionNo 
+				and production.delFlg = '0'
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+			inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+			inner join userCustomerLinkRef on usercustomerlinkref.customerId = tradeOrder.customerId
+			left join (select receipt.*, 
+					receiptDtl.feeNum, 
+					receiptDtl.tradeOrderId,
+					receiptDtl.productionId,
+					receiptDtl.versionNo,
+					receiptDtl.quantity
+					from receipt inner join receiptDtl on 
+					receipt.delFlg = '0'
+					and receiptDtl.delFlg = '0'
+					and receipt.receiptId = receiptDtl.receiptId
+					) R 
+			on R.tradeOrderId = tradeOrder.tradeOrderId 
+			and R.productionId = tradeOrderDtl.productionId 
+			and R.versionNo = tradeOrderDtl.versionNo 
+		where 1 = 1
+		and tradeOrder.status in ('1', '2')
+		and tradeOrder.tradeOrderId not in ('T-20160229-002', 'T-20160229-003', 'T-20160229-004', 'T-20160229-005', 'T-20160229-006', 'T-20160229-007', 'T-20160229-008', 'T-20160229-009', 'T-20160229-010')
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by usercustomerlinkref.userId, customer.customerId, tradeOrder.tradeOrderId DESC, vendor.vendorId, production.productionId, R.feeNum
+	</select>
+	
+</mapper>  

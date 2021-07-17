@@ -1,0 +1,264 @@
+<%@ page contentType="text/html; charset=UTF-8"%>
+<%@ taglib prefix="sf" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ page isELIgnored="false" %>
+
+<jsp:include page="header.jsp"></jsp:include>
+
+<script src="../jsp/js/user.js"></script>
+
+<sf:form id="form1" method="post" action="" modelAttribute="user">
+<sf:hidden id="startIndex" path="pageInfo.startIndex"/>
+<sf:hidden id="pageSize" path="pageInfo.pageSize"/>
+<sf:hidden id="lastIndex" path="pageInfo.lastIndex"/>
+
+
+<div class="container" id="pagetop">
+	<h1>
+		${sessionScope.pageTitle}
+	</h1>
+	<div class="iobox iobox-h ">
+	</div>
+	<c:if test="${!empty requestScope.errorMessage}">
+		<div id="alertDiv" class="alert alert-danger alert-dismissable">
+			<button id="alertDismissButton" type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+			<strong>${requestScope.errorMessage}</strong>
+		</div>
+	</c:if>
+	<div class="titledbox">
+		<div class="titledbox-header">
+			<div class="row-fluid">
+				<div class="span3">
+					<h2>
+						检索条件
+					</h2>
+				</div>
+				<!-- /span3 -->
+			</div>
+		</div>
+		<div class="titledbox-body titledbox-body-extended">
+			<div class="iobox iobox-h">
+				<table class="table">
+					<tbody>
+						<tr>
+							<th class="iobox-label-area additional va-m" style="width: 140px;">
+								用户ID
+							</th>
+							<td>
+								<sf:input class="span4 control-largeCommon" path="userId4S" maxlength="30"/>
+							</td>
+						</tr>
+						<tr>
+							<th class="iobox-label-area additional va-m" style="width: 140px;">
+								用户中文名
+							</th>
+							<td>
+								<sf:input class="span4 control-largeCommon" path="userNameC4S" maxlength="30"/>
+							</td>
+						</tr>
+						<tr>
+							<th class="iobox-label-area additional va-m" style="width: 140px;">
+								用户英文名
+							</th>
+							<td>
+								<sf:input class="span4 control-largeCommon" path="userNameE4S" maxlength="30"/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<!-- /I/Oボックス -->
+			<div class="form-actions ta-c">
+				<a class="btn w100" id="userSearch">
+					<b>
+						检索
+					</b>
+				</a>
+				<a style="margin-left:30px;" class="btn btn-primary w100" id="userAdd">
+					<b>
+						添加
+					</b>
+				</a>
+			</div>
+		</div>
+	</div>
+	<c:choose>
+		<c:when test="${user.pageInfo.totalCount != 0}">
+			<div id="result" class="datagrid">
+				<table class="table table-striped  table-bordered" style="">
+					<tr>
+						<th style="width:25px;">
+							选择
+						</th>
+						<th>
+							用户ID
+						</th>
+						<th style="width:100px">
+							用户中文名
+						</th>
+						<th style="width:100px">
+							用户英文名
+						</th>
+						<th style="width:100px">
+							用户类型
+						</th>
+						<th style="width:160px">
+							座机
+						</th>
+						<th style="width:160px">
+							手机
+						</th>
+					</tr>
+					<c:forEach var="item" items="${user.resultUserList}" varStatus="status">
+						<tr>
+							<td class="va-m ta-c">
+								<input type="radio" name="itemSelected" userId="${item.userId}"/>
+							</td>
+							<td>
+								${item.userId!=null?item.userId:'&nbsp;'}
+							</td>
+							<td>
+								${item.userNameC!=null?item.userNameC:'&nbsp;'}
+							</td>
+							<td>
+								${item.userNameE!=null?item.userNameE:'&nbsp;'}
+							</td>
+							<td>
+								${item.categoryName!=null?item.categoryName:'&nbsp;'}
+							</td>
+							<td>
+								${item.contact!=null?item.contact:'&nbsp;'}
+							</td>
+							<td>
+								${item.urgentContact!=null?item.urgentContact:'&nbsp;'}
+							</td>
+						</tr>
+					</c:forEach>
+				</table>
+				<div class="row-fluid dividingbox ">
+					<div class="span4">
+						<p class="tableresult-stat additional">
+							共
+							<strong>
+								${user.pageInfo.totalCount}
+							</strong>
+							记录&nbsp&nbsp&nbsp每页显示
+							<strong>
+								${user.pageInfo.pageSize}
+							</strong>
+							条记录&nbsp&nbsp&nbsp当前第
+							<strong>
+								${user.pageInfo.currentPage }
+							</strong>
+							/
+							<strong>
+								${user.pageInfo.pageCount}
+							</strong>
+							页
+						</p>
+					</div>
+					<!-- /span4 -->
+					<div class="span8">
+						<div class="pagination pagination-right">
+							<ul>
+								<c:choose>
+									<c:when test="${user.pageInfo.startIndex ne '0'}">
+										<li class="">
+											<a id="toFirstPage" href="javascript:void(0)">
+												首页
+											</a>
+										</li>
+									</c:when>
+									<c:otherwise>
+										<li class="disabled">
+											<a>
+												首页
+											</a>
+										</li>
+									</c:otherwise>
+								</c:choose>
+								<c:choose>
+									<c:when test="${user.pageInfo.previousIndex lt user.pageInfo.startIndex}">
+										<li class="">
+											<a id="toPreviousPage" href="javascript:void(0)">
+												上一页
+											</a>
+										</li>
+									</c:when>
+									<c:otherwise>
+										<li class="disabled">
+											<a>
+												上一页
+											</a>
+										</li>
+									</c:otherwise>
+								</c:choose>
+								<c:choose>
+									<c:when test="${user.pageInfo.nextIndex > user.pageInfo.startIndex}">
+										<li class="">
+											<a id="toNextPage" href="javascript:void(0)">
+												下一页
+											</a>
+										</li>
+									</c:when>
+									<c:otherwise>
+										<li class="disabled">
+											<a>
+												下一页
+											</a>
+										</li>
+									</c:otherwise>
+								</c:choose>
+								<c:choose>
+									<c:when test="${user.pageInfo.lastIndex eq user.pageInfo.startIndex}">
+										<li class="disabled">
+											<a>
+												最后一页
+											</a>
+										</li>
+									</c:when>
+									<c:otherwise>
+										<li class="">
+											<a id="toLastPage" href="javascript:void(0)">
+												最后一页
+											</a>
+										</li>
+									</c:otherwise>
+								</c:choose>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="bulk-editing-area dividingbox dividingbox-jointed">
+					<div class="row-fluid">
+						<div class="span12 ta-c">
+							<a class="btn btn-primary w100" id="userRef" href="javascript:void(0);">
+								<b>
+									查看
+								</b>
+							</a>
+							<a style="margin-left:30px;" id="userUpdate" class="btn btn-primary w100" href="javascript:void(0);">
+								<b>
+									修改
+								</b>
+							</a>
+							<a style="margin-left:30px;" id="userDelete" class="btn w100" href="javascript:void(0);">
+								<b>
+									删除
+								</b>
+							</a>
+							<a style="margin-left:30px;" id="passwordReset" class="btn w100" href="javascript:void(0);">
+								<b>
+									密码重置
+								</b>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</c:when>
+	</c:choose>
+</div>
+</sf:form>
+
+<jsp:include page="footer.jsp"></jsp:include>

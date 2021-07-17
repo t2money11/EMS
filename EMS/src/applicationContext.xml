@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		">
+
+	<!-- MyBatis配置 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <!-- 显式指定Mapper文件位置 -->
+		<property name="mapperLocations" value="classpath*:/mybatis/*DAO.xml" />
+		<!-- mybatis配置文件路径 -->
+        <property name="configLocation" value="classpath:/mybatis/config.xml"/>    
+    </bean>
+    
+    <!-- 自动扫描映射器 -->  
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="com.dao" /> 
+    </bean>  
+
+	<!-- 使用annotation定义事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true" />
+
+	<!-- 数据源配置, 使用Tomcat JDBC连接池 -->
+    <bean id="dataSource" class="org.apache.tomcat.jdbc.pool.DataSource" destroy-method="close">
+        <!-- Connection Info -->
+        <property name="driverClassName" value="${jdbc.driver}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+
+        <!-- Connection Pooling Info -->
+        <property name="maxActive" value="${jdbc.pool.maxActive}" />
+        <property name="maxIdle" value="${jdbc.pool.maxIdle}" />
+        <property name="minIdle" value="0" />
+        <property name="defaultAutoCommit" value="false" />
+    </bean>
+    
+    <!-- 服务器启动初始化拦截器 -->
+    <bean class="com.interceptor.InstantiationTracingBeanPostProcessor"/>
+    
+    <bean id="userLogic" class="com.logic.UserLogic"></bean>
+    <bean id="userService" class="com.service.UserService" >
+		<property name="userLogic">
+			<ref bean="userLogic" />
+		</property>
+	</bean>
+	
+	<!-- 图片上传用 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="15000000"/>
+    </bean>
+	
+	<bean id="vendorLogic" class="com.logic.VendorLogic"></bean>
+    <bean id="vendorService" class="com.service.VendorService" >
+		<property name="vendorLogic">
+			<ref bean="vendorLogic" />
+		</property>
+	</bean>
+	
+	<bean id="customerLogic" class="com.logic.CustomerLogic"></bean>
+    <bean id="customerService" class="com.service.CustomerService" >
+		<property name="customerLogic">
+			<ref bean="customerLogic" />
+		</property>
+	</bean>
+	
+	<bean id="productionLogic" class="com.logic.ProductionLogic"></bean>
+    <bean id="productionService" class="com.service.ProductionService" >
+		<property name="productionLogic">
+			<ref bean="productionLogic" />
+		</property>
+	</bean>
+	
+	<bean id="tradeOrderLogic" class="com.logic.TradeOrderLogic"></bean>
+	<bean id="tradeOrderDtlLogic" class="com.logic.TradeOrderDtlLogic"></bean>
+	<bean id="interTradeOrderLogic" class="com.logic.InterTradeOrderLogic"></bean>
+	<bean id="interTradeOrderDtlLogic" class="com.logic.InterTradeOrderDtlLogic"></bean>
+    <bean id="tradeOrderService" class="com.service.TradeOrderService" >
+		<property name="tradeOrderLogic">
+			<ref bean="tradeOrderLogic" />
+		</property>
+		<property name="tradeOrderDtlLogic">
+			<ref bean="tradeOrderDtlLogic" />
+		</property>
+		<property name="interTradeOrderLogic">
+			<ref bean="interTradeOrderLogic" />
+		</property>
+		<property name="interTradeOrderDtlLogic">
+			<ref bean="interTradeOrderDtlLogic" />
+		</property>
+		<property name="inquiryLogic">
+			<ref bean="inquiryLogic" />
+		</property>
+	</bean>
+	
+	<bean id="userCustomerLinkRefLogic" class="com.logic.UserCustomerLinkRefLogic"></bean>
+    <bean id="userCustomerLinkRefService" class="com.service.UserCustomerLinkRefService" >
+		<property name="userCustomerLinkRefLogic">
+			<ref bean="userCustomerLinkRefLogic" />
+		</property>
+	</bean>
+	
+	<bean id="validationAPILogic" class="com.logic.ValidationAPILogic"></bean>
+    <bean id="validationAPIService" class="com.service.ValidationAPIService" >
+		<property name="validationAPILogic">
+			<ref bean="validationAPILogic" />
+		</property>
+	</bean>
+	
+	<bean id="inquiryLogic" class="com.logic.InquiryLogic"></bean>
+    <bean id="inquiryService" class="com.service.InquiryService" >
+		<property name="inquiryLogic">
+			<ref bean="inquiryLogic" />
+		</property>
+	</bean>
+	
+	<bean id="receiptLogic" class="com.logic.ReceiptLogic"></bean>
+    <bean id="receiptService" class="com.service.ReceiptService" >
+		<property name="receiptLogic">
+			<ref bean="receiptLogic" />
+		</property>
+	</bean>
+	
+	<bean id="complaintLogic" class="com.logic.ComplaintLogic"></bean>
+    <bean id="complaintService" class="com.service.ComplaintService" >
+		<property name="complaintLogic">
+			<ref bean="complaintLogic" />
+		</property>
+		<property name="tradeOrderLogic">
+			<ref bean="tradeOrderLogic" />
+		</property>
+	</bean>
+	
+	<bean id="analysisLogic" class="com.logic.AnalysisLogic"></bean>
+    <bean id="analysisService" class="com.service.AnalysisService" >
+		<property name="analysisLogic">
+			<ref bean="analysisLogic" />
+		</property>
+	</bean>
+	
+	<bean id="tradeOrderExport" class="com.poi.TradeOrderExport" >
+	</bean>
+	
+	<bean id="receiptExport" class="com.poi.ReceiptExport" >
+		<property name="vendorLogic">
+			<ref bean="vendorLogic" />
+		</property>
+		<property name="interTradeOrderLogic">
+			<ref bean="interTradeOrderLogic" />
+		</property>
+	</bean>
+	
+	<bean id="analysisExport" class="com.poi.AnalysisExport" >
+		<property name="analysisLogic">
+			<ref bean="analysisLogic" />
+		</property>
+	</bean>
+	
+	<bean id="codeLogic" class="com.logic.CodeLogic"></bean>
+    <bean id="codeService" class="com.service.CodeService" >
+		<property name="codeLogic">
+			<ref bean="codeLogic" />
+		</property>
+	</bean>
+    
+    <!-- production环境 -->
+    <beans profile="production">
+        <context:property-placeholder ignore-unresolvable="true" file-encoding="utf-8" 
+        location="classpath:config.properties,classpath:jdbc.properties" />
+    </beans>
+    
+</beans>

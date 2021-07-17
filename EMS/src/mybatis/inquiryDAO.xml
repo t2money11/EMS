@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.InquiryDAO">
+	
+	<select id="getInquiryId4New" parameterType="map" resultType="String">
+		select
+			max(inquiryId)
+		from inquiry
+		where inquiryId like "%"#{nowDate}"%"
+			and delFlg = '0'
+	</select>
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Inquiry">
+		select
+			inquiryId,
+			customer.customerId,
+			customer.customerName,
+			customer.updateTime customerUpdateTime,
+			inquiry.comment,
+			inquiry.createTime,
+			inquiry.createUser,
+			inquiry.updateTime,
+			inquiry.updateUser,
+			inquiry.delFlg
+		from inquiry inner join customer on inquiry.customerId = customer.customerId and customer.delFlg = '0'
+		where inquiry.delFlg = '0' 
+			and inquiryId=#{inquiryId}
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.InquiryDtl">
+		select
+			inquiryDtl.inquiryId,
+			customer.customerId,
+			customer.customerName,
+			inquiryDtl.productionId,
+			inquiryDtl.versionNo,
+			inquiryDtl.tradeOrderId,
+			inquiryDtl.rate,
+			inquiryDtl.RMB,
+			inquiryDtl.finalPrice,
+			inquiryDtl.costProfitRatio
+		from inquiry inner join customer on inquiry.customerId = customer.customerId and customer.delFlg = '0'
+		inner join inquiryDtl on inquiry.inquiryId = inquiryDtl.inquiryId and inquiryDtl.delFlg = '0' 
+		where inquiry.delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and UPPER(inquiry.customerId)=#{customerId} 
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and UPPER(customerName) like "%"#{customerName}"%"
+		</if>
+		<if test="inquiryId != null and inquiryId != ''">
+			and UPPER(inquiryDtl.inquiryId) like "%"#{inquiryId}"%"
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(inquiryDtl.productionId) like "%"#{productionId}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by inquiryDtl.inquiryId DESC, inquiryDtl.productionId, inquiryDtl.versionNo DESC
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from inquiry inner join customer on inquiry.customerId = customer.customerId and customer.delFlg = '0'
+		inner join inquiryDtl on inquiry.inquiryId = inquiryDtl.inquiryId and inquiryDtl.delFlg = '0' 
+		where inquiry.delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and UPPER(inquiry.customerId)=#{customerId} 
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and UPPER(customerName) like "%"#{customerName}"%"
+		</if>
+		<if test="inquiryId != null and inquiryId != ''">
+			and UPPER(inquiryDtl.inquiryId) like "%"#{inquiryId}"%"
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(inquiryDtl.productionId) like "%"#{productionId}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+	</select>
+	
+	<select id="findDtlByKey" parameterType="map" resultType="com.entity.InquiryDtl">
+		select
+			inquiryDtl.inquiryId,
+			inquiryDtl.productionId,
+			inquiryDtl.versionNo,
+			production.descriptionC,
+			production.descriptionE,
+			production.taxReturnRate,
+			production.updateTime productionUpdateTime,
+			inquiryDtl.tradeOrderId,
+			inquiryDtl.buyoutPrice,
+			inquiryDtl.RMB,
+			inquiryDtl.rate,
+			inquiryDtl.preliminaryPrice,
+			inquiryDtl.adjustPrice,
+			inquiryDtl.finalPrice,
+			inquiryDtl.factoryPriceFluctuation,
+			inquiryDtl.rateFluctuation,
+			inquiryDtl.finalDollarPriceFluctuation,
+			inquiryDtl.costProfitRatio,
+			inquiryDtl.comment,
+			inquiryDtl.createTime,
+			inquiryDtl.createUser,
+			inquiryDtl.updateTime,
+			inquiryDtl.updateUser,
+			inquiryDtl.delFlg
+		from inquiryDtl inner join production on inquiryDtl.productionId = production.productionId 
+			and inquiryDtl.versionNo = production.versionNo 
+			and production.delFlg = '0'
+		where inquiryDtl.delFlg = '0' 
+			and inquiryDtl.inquiryId=#{inquiryId} 
+		order by inquiryId DESC
+	</select>
+	
+	<select id="findLastDtlByKey" parameterType="map" resultType="com.entity.InquiryDtl">
+		select
+			inquiryDtl.inquiryId,
+			inquiryDtl.productionId,
+			inquiryDtl.versionNo,
+			production.descriptionC,
+			production.descriptionE,
+			production.taxReturnRate,
+			inquiryDtl.tradeOrderId,
+			inquiryDtl.buyoutPrice,
+			inquiryDtl.RMB,
+			inquiryDtl.rate,
+			inquiryDtl.preliminaryPrice,
+			inquiryDtl.adjustPrice,
+			inquiryDtl.finalPrice,
+			inquiryDtl.factoryPriceFluctuation,
+			inquiryDtl.rateFluctuation,
+			inquiryDtl.finalDollarPriceFluctuation,
+			inquiryDtl.costProfitRatio,
+			inquiryDtl.comment,
+			inquiryDtl.createTime,
+			inquiryDtl.createUser,
+			inquiryDtl.updateTime,
+			inquiryDtl.updateUser,
+			inquiryDtl.delFlg
+		from inquiryDtl inner join production on inquiryDtl.productionId = production.productionId 
+			and inquiryDtl.versionNo = production.versionNo 
+			and production.delFlg = '0'
+		where inquiryDtl.delFlg = '0' 
+			<if test="inquiryId != null and inquiryId != ''">
+				and inquiryDtl.inquiryId &lt; #{inquiryId} 
+			</if>
+			and inquiryDtl.productionId=#{productionId} 
+		order by inquiryId DESC
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Inquiry">
+		delete from inquiry 
+		where delFlg = '0' 
+			and inquiryId=#{inquiryId} 
+	</delete>
+	
+	<delete id="deleteDtl" parameterType="com.entity.Inquiry">
+		delete from inquiryDtl
+		where delFlg = '0'
+			and inquiryId=#{inquiryId}
+			and tradeOrderId is null
+	</delete>
+	
+	<update id="update" parameterType="com.entity.Inquiry">
+		update inquiry set
+			comment=#{comment},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where
+			inquiryId=#{inquiryId}
+			and delFlg = 0
+	</update>
+	
+	<insert id="insert" parameterType="com.entity.Inquiry">
+		insert inquiry(
+			inquiryId,
+			customerId,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{inquiryId},
+			#{customerId},
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<insert id="insertDtl" parameterType="com.entity.InquiryDtl">
+		insert inquiryDtl(
+			inquiryId,
+			productionId,
+			versionNo,
+			tradeOrderId,
+			buyoutPrice,
+			RMB,
+			rate,
+			preliminaryPrice,
+			adjustPrice,
+			finalPrice,
+			factoryPriceFluctuation,
+			rateFluctuation,
+			finalDollarPriceFluctuation,
+			costProfitRatio,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{inquiryId},
+			#{productionId},
+			#{versionNo},
+			#{tradeOrderId},
+			CONVERT(#{buyoutPrice}, DECIMAL(15, 2)),
+			CONVERT(#{RMB}, DECIMAL(15, 2)),
+			CONVERT(#{rate}, DECIMAL(10, 2)),
+			CONVERT(#{preliminaryPrice}, DECIMAL(15, 3)),
+			CONVERT(#{adjustPrice}, DECIMAL(15, 3)),
+			CONVERT(#{finalPrice}, DECIMAL(15, 3)),
+			CONVERT(#{factoryPriceFluctuation}, DECIMAL(15, 2)),
+			CONVERT(#{rateFluctuation}, DECIMAL(10, 2)),
+			CONVERT(#{finalDollarPriceFluctuation}, DECIMAL(15, 2)),
+			CONVERT(#{costProfitRatio}, DECIMAL(10, 2)),
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<select id="findDtlByTradeOrder" parameterType="map" resultType="com.entity.InquiryDtl">
+		select
+			inquiryId
+		from inquiryDtl
+		where inquiryDtl.delFlg = '0' 
+			and (tradeOrderId is null or tradeOrderId =#{tradeOrderId})
+			and productionId=#{productionId}
+			and versionNo=#{versionNo}
+			and finalPrice=#{unitPrice}
+		<if test="inquiryId != null and inquiryId != ''">
+			and inquiryId=#{inquiryId}
+		</if>	
+		order by tradeOrderId DESC, inquiryId DESC
+		limit 1
+	</select>
+	
+	<update id="updateDtlOnTradeOrderId" parameterType="com.entity.InquiryDtl">
+		update inquiryDtl set
+			tradeOrderId=#{tradeOrderId},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where
+			inquiryId=#{inquiryId}
+			and productionId=#{productionId}
+			and versionNo=#{versionNo}
+			and delFlg = 0
+	</update>
+	
+	<update id="clearDtlOnTradeOrderId" parameterType="com.entity.InquiryDtl">
+		update inquiryDtl set
+			tradeOrderId = null,
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where
+			tradeOrderId=#{tradeOrderId}
+			and delFlg = 0
+	</update>
+	
+</mapper>  

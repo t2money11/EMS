@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.TradeOrderDAO">
+	
+	<select id="validateDuplicatedPOorContractNo" parameterType="map" resultType="int">
+		select
+			count(1)
+		from tradeOrder
+		where delFlg = '0'
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId &lt;&gt; #{tradeOrderId} 
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po=#{po} 
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo=#{contractNo} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+	</select>
+	
+	<select id="getTradeOrderId4New" parameterType="map" resultType="String">
+		select
+			max(tradeOrderId)
+		from tradeOrder
+		where tradeOrderId like "%"#{nowDate}"%"
+			and delFlg = '0'
+	</select>
+	
+	<select id="getContractNo4New" parameterType="map" resultType="String">
+		select
+			max(contractNo)
+		from tradeOrder
+		where contractNo like "RP"#{nowYear}"-"#{customerId}"-%"
+			and delFlg = '0'
+	</select>
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.TradeOrder">
+		select
+			tradeOrder.tradeOrderId,
+			tradeOrder.inquiryId,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			date_format(tradeOrder.tradeOrderCreateDate,'%Y-%m-%d') as tradeOrderCreateDate,
+			date_format(tradeOrder.tradeOrderConfirmDate,'%Y-%m-%d') as tradeOrderConfirmDate,
+			customer.customerId,
+			customer.customerName,
+			customer.customerFullName,
+			customer.tel,
+			customer.fax,
+			customer.location,
+			customer.country,
+			customer.freightTerms,
+			customer.portOfLoading,
+			customer.portOfDestination,
+			customer.paymentTerms,
+			customer.updateTime customerUpdateTime,
+			tradeOrder.shipment,
+			tradeOrder.sendMode,
+			CONCAT(tradeOrder.exRate,'') as exRate,
+			CONCAT(tradeOrder.etrRate,'') as etrRate,
+			tradeOrder.comment,
+			tradeOrder.updateComment,
+			CONCAT(tradeOrder.amountTtl,'') as amountTtl,
+			tradeOrder.status,
+			(select codeName from code where categoryId = 'T_STATUS' and codeId = tradeOrder.status) as statusName,
+			inquiryNeeded,
+			tradeOrder.createTime,
+			tradeOrder.createUser,
+			tradeOrder.updateTime,
+			tradeOrder.updateUser,
+			tradeOrder.delFlg
+		from tradeOrder inner join customer on tradeOrder.customerId = customer.customerId
+			and customer.delFlg = '0'
+		where tradeOrder.delFlg = '0' 
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId=#{tradeOrderId} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po=#{po} 
+		</if>
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.TradeOrder">
+		select
+			tradeOrder.tradeOrderId,
+			tradeOrder.inquiryId,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			date_format(tradeOrder.tradeOrderCreateDate,'%Y-%m-%d') as tradeOrderCreateDate,
+			date_format(tradeOrder.tradeOrderConfirmDate,'%Y-%m-%d') as tradeOrderConfirmDate,
+			customer.customerId,
+			customer.customerName,
+			customer.customerFullName,
+			customer.tel,
+			customer.fax,
+			customer.location,
+			customer.country,
+			customer.freightTerms,
+			customer.portOfLoading,
+			customer.portOfDestination,
+			customer.paymentTerms,
+			tradeOrder.shipment,
+			tradeOrder.sendMode,
+			CONCAT(tradeOrder.exRate,'') as exRate,
+			CONCAT(tradeOrder.etrRate,'') as etrRate,
+			tradeOrder.comment,
+			tradeOrder.updateComment,
+			CONCAT(tradeOrder.amountTtl,'') as amountTtl,
+			tradeOrder.status,
+			(select codeName from code where categoryId = 'T_STATUS' and codeId = tradeOrder.status) as statusName,
+			case when exists (select 1 from interTradeOrder where interTradeOrder.tradeOrderId = tradeOrder.tradeOrderId
+						and interTradeOrder.advancePayment is not null
+						and interTradeOrder.delFlg = '0') then '已预付'
+			     when exists (select 1 from interTradeOrder where interTradeOrder.tradeOrderId = tradeOrder.tradeOrderId
+						and interTradeOrder.advancePaymentDiscountRate is not null
+						and interTradeOrder.advancePayment is null
+						and interTradeOrder.delFlg = '0') then '需要预付' end advancePaymentCondition,
+			inquiryNeeded,
+			tradeOrder.createTime,
+			tradeOrder.createUser,
+			tradeOrder.updateTime,
+			tradeOrder.updateUser,
+			tradeOrder.delFlg
+		from tradeOrder inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+		where 1 = 1
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from tradeOrderDtl 
+						where UPPER(tradeOrderDtl.productionId) like "%"#{productionId}"%"
+						and tradeOrderDtl.tradeOrderId = tradeOrder.tradeOrderId 
+						and tradeOrderDtl.delFlg = '0')
+		</if>
+		<if test="status != null and status != ''">
+			and tradeOrder.status=#{status} 
+		</if>
+		<if test="vendorId != null and vendorId != ''">
+			and exists (select 1 from interTradeOrder 
+						where interTradeOrder.tradeOrderId = tradeOrder.tradeOrderId
+						and interTradeOrder.vendorId = #{vendorId}
+						and interTradeOrder.delFlg = '0'
+			)
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		order by tradeOrder.tradeOrderId DESC
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from tradeOrder inner join customer on tradeOrder.customerId = customer.customerId and customer.delFlg = '0'
+		where 1 = 1
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from tradeOrderDtl 
+						where UPPER(tradeOrderDtl.productionId) like "%"#{productionId}"%"
+						and tradeOrderDtl.tradeOrderId = tradeOrder.tradeOrderId 
+						and tradeOrderDtl.delFlg = '0')
+		</if>
+		<if test="status != null and status != ''">
+			and tradeOrder.status=#{status} 
+		</if>
+		<if test="vendorId != null and vendorId != ''">
+			and exists (select 1 from interTradeOrder 
+						where interTradeOrder.tradeOrderId = tradeOrder.tradeOrderId
+						and interTradeOrder.vendorId = #{vendorId}
+						and interTradeOrder.delFlg = '0'
+			)
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+	</select>
+	
+	<select id="findPopByProperty" parameterType="map" resultType="com.entity.TradeOrderPop">
+		select
+			tradeOrder.tradeOrderId,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			tradeOrder.tradeOrderCreateDate,
+			tradeOrder.updateTime tradeOrderUpdateTime,
+			production.productionId,
+			production.versionNo,
+			production.descriptionE,
+			production.descriptionC,
+			production.hscode,
+			production.productionEName4Export,
+			production.productionCName4Export,
+			production.updateTime productionUpdateTime,
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			vendor.vendorId,
+			vendor.vendorName,
+			vendor.shortLocation,
+			tradeOrderDtl.quantity tQuantity,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			tradeOrderDtl.feeTitle1 tFeeTitle1,
+			tradeOrderDtl.fee1 tFee1,
+			tradeOrderDtl.feeTitle2 tFeeTitle2,
+			tradeOrderDtl.fee2 tFee2,
+			tradeOrderDtl.feeTitle3 tFeeTitle3,
+			tradeOrderDtl.fee3 tFee3,
+			tradeOrderDtl.feeTitle4 tFeeTitle4,
+			tradeOrderDtl.fee4 tFee4,
+			interTradeOrderDtl.quantity iQuantity,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			interTradeOrderDtl.feeTitle1 iFeeTitle1,
+			interTradeOrderDtl.fee1 iFee1,
+			interTradeOrderDtl.feeTitle2 iFeeTitle2,
+			interTradeOrderDtl.fee2 iFee2,
+			interTradeOrderDtl.feeTitle3 iFeeTitle3,
+			interTradeOrderDtl.fee3 iFee3,
+			interTradeOrderDtl.feeTitle4 iFeeTitle4,
+			interTradeOrderDtl.fee4 iFee4,
+			(select sum(receiptDtl.quantity) from receiptDtl 
+			where tradeOrderDtl.tradeOrderId = receiptDtl.tradeOrderId 
+			and tradeOrderDtl.productionId = receiptDtl.productionId
+			and tradeOrderDtl.versionNo = receiptDtl.versionNo
+			and receiptDtl.delFlg = '0') quantitySent,
+			tradeOrder.updateTime
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo
+			inner join production on tradeOrderDtl.productionId = production.productionId and production.delFlg = '0'
+				and tradeOrderDtl.versionNo = production.versionNo 
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		where 1 = 1
+		<if test="isStatusRefFlg == '1'.toString()">
+			and tradeOrder.status > '0'
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(tradeOrderDtl.productionId) like "%"#{productionId}"%"
+		</if>
+		order by tradeOrder.tradeOrderId, production.productionId
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindPopByProperty" parameterType="map" resultType="int">
+		select
+			count(1)
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo
+			inner join production on tradeOrderDtl.productionId = production.productionId and production.delFlg = '0'
+				and tradeOrderDtl.versionNo = production.versionNo 
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		where 1 = 1
+		<if test="isStatusRefFlg == '1'.toString()">
+			and tradeOrder.status > '0'
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(tradeOrderDtl.productionId) like "%"#{productionId}"%"
+		</if>
+	</select>
+	
+	<select id="findLastTradeOrderByProductionId" parameterType="map" resultType="com.entity.TradeOrder">
+		select
+			tradeOrder.tradeOrderId,
+			date_format(tradeOrder.tradeOrderConfirmDate,'%Y-%m-%d') as tradeOrderConfirmDate
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId
+			and tradeOrderDtl.delFlg = '0'
+		where tradeOrder.delFlg = '0' 
+			and tradeOrder.status = '1'
+			and tradeOrderDtl.productionId=#{productionId}
+		order by tradeOrder.tradeOrderConfirmDate DESC
+		limit 1
+	</select>
+	
+	<!-- 订单中添加产品时获取上次确定订单中的该产品的RBM单价，不需要加上版本号 -->
+	<select id="findPreviousRMBByProductionId" parameterType="map" resultType="String">
+		select
+			CONCAT(interTradeOrderDtl.unitPrice,'') as unitPrice
+		from interTradeOrder inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId
+			and interTradeOrderDtl.delFlg = '0'
+			inner join tradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId
+			and tradeOrder.delFlg = '0'
+		where interTradeOrder.delFlg = '0' 
+			and tradeOrder.status = '1'
+			and interTradeOrderDtl.productionId=#{productionId}
+		order by tradeOrder.tradeOrderConfirmDate DESC
+		limit 1
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.TradeOrder">
+		delete from tradeOrder 
+		where delFlg = '0' 
+			and tradeOrderId=#{tradeOrderId} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.TradeOrder">
+		insert tradeOrder(
+			tradeOrderId,
+			inquiryId,
+			po,
+			contractNo,
+			tradeOrderCreateDate,
+			tradeOrderConfirmDate,
+			customerId,
+			shipment,
+			sendMode,
+			exRate,
+			etrRate,
+			comment,
+			updateComment,
+			amountTtl,
+			status,
+			inquiryNeeded,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{tradeOrderId},
+			#{inquiryId},
+			#{po},
+			#{contractNo},
+			str_to_date(#{tradeOrderCreateDate},'%Y-%m-%d'),
+			str_to_date(#{tradeOrderConfirmDate},'%Y-%m-%d'),
+			#{customerId},
+			#{shipment},
+			#{sendMode},
+			CONVERT(#{exRate}, DECIMAL(10, 2)),
+			CONVERT(#{etrRate}, DECIMAL(10, 0)),
+			#{comment},
+			#{updateComment},
+			CONVERT(#{amountTtl}, DECIMAL(15, 2)),
+			#{status},
+			#{inquiryNeeded},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.TradeOrder">
+		update tradeOrder set
+			inquiryId=#{inquiryId},
+			po=#{po},
+			contractNo=#{contractNo},
+			tradeOrderCreateDate=str_to_date(#{tradeOrderCreateDate},'%Y-%m-%d'),
+			tradeOrderConfirmDate=str_to_date(#{tradeOrderConfirmDate},'%Y-%m-%d'),
+			customerId=#{customerId},
+			shipment=#{shipment},
+			sendMode=#{sendMode},
+			exRate=CONVERT(#{exRate}, DECIMAL(10, 2)),
+			etrRate=CONVERT(#{etrRate}, DECIMAL(10, 0)),
+			comment=#{comment},
+			updateComment=#{updateComment},
+			amountTtl=CONVERT(#{amountTtl}, DECIMAL(15, 2)),
+			status=#{status},
+			inquiryNeeded=#{inquiryNeeded},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			tradeOrderId=#{tradeOrderId}
+	</update>
+	
+	<update id="updateStatus" parameterType="com.entity.TradeOrder">
+		update tradeOrder set
+			status=#{status},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			tradeOrderId=#{tradeOrderId}
+			and status in ('1', '2')
+	</update>
+	
+	<select id="count4Complaint" parameterType="map" resultType="int">
+		select
+			count(1)
+		from tradeOrder inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId
+			and tradeOrderDtl.delFlg = '0'
+		where tradeOrder.delFlg = '0' 
+			and tradeOrder.tradeOrderId=#{tradeOrderId} 
+			and tradeOrderDtl.productionId=#{productionId} 
+			and tradeOrderDtl.versionNo=#{versionNo} 
+			and tradeOrder.status in ('1', '2')
+	</select>
+</mapper>  

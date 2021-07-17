@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.CustomerDAO">
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Customer">
+		select
+			customerId,
+			customerName,
+			customerFullName,
+			webSite,
+			country,
+			location,
+			freightTerms,
+			paymentTerms,
+			portOfLoading,
+			portOfDestination,
+			consignee,
+			contact,
+			tel,
+			fax,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		from customer where delFlg = '0' 
+			and customerId=#{customerId} 
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.Customer">
+		select
+			customerId,
+			customerName,
+			customerFullName,
+			webSite,
+			country,
+			location,
+			freightTerms,
+			paymentTerms,
+			portOfLoading,
+			portOfDestination,
+			consignee,
+			contact,
+			tel,
+			fax,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateTime customerUpdateTime,
+			updateUser,
+			delFlg
+		from customer 
+		where delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and UPPER(customerId)=#{customerId} 
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and UPPER(customerName) like "%"#{customerName}"%"
+		</if>
+		<if test="location != null and location != ''">
+			and UPPER(location) like "%"#{location}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from customer 
+		where customer.delFlg = '0' 
+		<if test="customerId != null and customerId != ''">
+			and UPPER(customerId)=#{customerId} 
+		</if>
+		<if test="customerName != null and customerName != ''">
+			and UPPER(customerName) like "%"#{customerName}"%"
+		</if>
+		<if test="location != null and location != ''">
+			and UPPER(location) like "%"#{location}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Customer">
+		delete from customer 
+		where delFlg = '0' 
+			and customerId=#{customerId} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.Customer">
+		insert customer(
+			customerId,
+			customerName,
+			customerFullName,
+			webSite,
+			country,
+			location,
+			freightTerms,
+			paymentTerms,
+			portOfLoading,
+			portOfDestination,
+			consignee,
+			contact,
+			tel,
+			fax,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{customerId},
+			#{customerName},
+			#{customerFullName},
+			#{webSite},
+			#{country},
+			#{location},
+			#{freightTerms},
+			#{paymentTerms},
+			#{portOfLoading},
+			#{portOfDestination},
+			#{consignee},
+			#{contact},
+			#{tel},
+			#{fax},
+			#{contact1},
+			#{contact2},
+			#{contact3},
+			#{contact4},
+			#{contact5},
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.Customer">
+		update customer set
+			customerName=#{customerName},
+			customerFullName=#{customerFullName},
+			webSite=#{webSite},
+			country=#{country},
+			location=#{location},
+			freightTerms=#{freightTerms},
+			paymentTerms=#{paymentTerms},
+			portOfLoading=#{portOfLoading},
+			portOfDestination=#{portOfDestination},
+			consignee=#{consignee},
+			contact=#{contact},
+			tel=#{tel},
+			fax=#{fax},
+			contact1=#{contact1},
+			contact2=#{contact2},
+			contact3=#{contact3},
+			contact4=#{contact4},
+			contact5=#{contact5},
+			comment=#{comment},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			customerId=#{customerId}
+	</update>
+</mapper>  

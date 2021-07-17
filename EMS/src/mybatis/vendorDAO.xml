@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.VendorDAO">
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Vendor">
+		select
+			vendorId,
+			vendorName,
+			vendorFullName,
+			location,
+			shortLocation,
+			tel,
+			fax,
+			orcc,
+			billingInfo,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			mobile1,
+			mobile2,
+			mobile3,
+			mobile4,
+			mobile5,
+			title1,
+			title2,
+			title3,
+			title4,
+			title5,
+			createTime,
+			createUser,
+			updateTime,
+			updateTime vendorUpdateTime,
+			updateUser,
+			delFlg
+		from vendor where delFlg = '0' 
+			and vendorId=#{vendorId}
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.Vendor">
+		select
+			vendorId,
+			vendorName,
+			vendorFullName,
+			location,
+			shortLocation,
+			tel,
+			fax,
+			orcc,
+			billingInfo,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			mobile1,
+			mobile2,
+			mobile3,
+			mobile4,
+			mobile5,
+			title1,
+			title2,
+			title3,
+			title4,
+			title5,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		from vendor where delFlg = '0' 
+		<if test="vendorId != null and vendorId != ''">
+			and vendorId=#{vendorId} 
+		</if>
+		<if test="vendorName != null and vendorName != ''">
+			and vendorName like "%"#{vendorName}"%"
+		</if>
+		<if test="location != null and location != ''">
+			and location like "%"#{location}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from production inner join userCustomerLinkRef on production.customerId = userCustomerLinkRef.customerId
+						and production.delFlg = '0'
+						and userCustomerLinkRef.delFlg = '0'
+						and userCustomerLinkRef.userId = #{userId}
+						where production.vendorId = vendor.vendorId
+			)
+		</if>
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from vendor where delFlg = '0' 
+		<if test="vendorId != null and vendorId != ''">
+			and vendorId=#{vendorId} 
+		</if>
+		<if test="vendorName != null and vendorName != ''">
+			and vendorName like "%"#{vendorName}"%"
+		</if>
+		<if test="location != null and location != ''">
+			and location like "%"#{location}"%"
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from production inner join userCustomerLinkRef on production.customerId = userCustomerLinkRef.customerId
+						and production.delFlg = '0'
+						and userCustomerLinkRef.delFlg = '0'
+						and userCustomerLinkRef.userId = #{userId}
+						where production.vendorId = vendor.vendorId
+			)
+		</if>
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Vendor">
+		delete from vendor 
+		where delFlg = '0' 
+			and vendorId=#{vendorId} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.Vendor">
+		insert vendor(
+			vendorId,
+			vendorName,
+			vendorFullName,
+			location,
+			shortLocation,
+			tel,
+			fax,
+			orcc,
+			billingInfo,
+			contact1,
+			contact2,
+			contact3,
+			contact4,
+			contact5,
+			mobile1,
+			mobile2,
+			mobile3,
+			mobile4,
+			mobile5,
+			title1,
+			title2,
+			title3,
+			title4,
+			title5,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{vendorId},
+			#{vendorName},
+			#{vendorFullName},
+			#{location},
+			#{shortLocation},
+			#{tel},
+			#{fax},
+			#{orcc},
+			#{billingInfo},
+			#{contact1},
+			#{contact2},
+			#{contact3},
+			#{contact4},
+			#{contact5},
+			#{mobile1},
+			#{mobile2},
+			#{mobile3},
+			#{mobile4},
+			#{mobile5},
+			#{title1},
+			#{title2},
+			#{title3},
+			#{title4},
+			#{title5},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.Vendor">
+		update vendor set
+			vendorName=#{vendorName},
+			vendorFullName=#{vendorFullName},
+			location=#{location},
+			shortLocation=#{shortLocation},
+			tel=#{tel},
+			fax=#{fax},
+			orcc=#{orcc},
+			billingInfo=#{billingInfo},
+			contact1=#{contact1},
+			contact2=#{contact2},
+			contact3=#{contact3},
+			contact4=#{contact4},
+			contact5=#{contact5},
+			mobile1=#{mobile1},
+			mobile2=#{mobile2},
+			mobile3=#{mobile3},
+			mobile4=#{mobile4},
+			mobile5=#{mobile5},
+			title1=#{title1},
+			title2=#{title2},
+			title3=#{title3},
+			title4=#{title4},
+			title5=#{title5},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			vendorId=#{vendorId}
+	</update>
+</mapper>  

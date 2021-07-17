@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.ProductionDAO">
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Production">
+		select
+			productionId,
+			versionNo,
+			productionIdVendor,
+			descriptionC,
+			descriptionE,
+			material,
+			surface,
+			size,
+			hscode,
+			productionCname4export,
+			productionEname4export,
+			CONCAT(taxReturnRate,'') as taxReturnRate,
+			brand,
+			purpose,
+			kind,
+			(select codeName from code where categoryId = 'P_TYPE' and codeId = production.kind) as kindName,
+			vendorId,
+			(select vendorName from vendor where vendor.vendorId = production.vendorId limit 1) as vendorName,
+			customerId,
+			(select customerName from customer where customer.customerId = production.customerId limit 1) as customerName,
+			packMethod,
+			CONCAT(volume,'') as volume,
+			CONCAT(grossWeight,'') as grossWeight,
+			CONCAT(netWeight,'') as netWeight,
+			CONCAT(inside,'') as inside,
+			CONCAT(outside,'') as outside,
+			date_format(lastDrawUpdateDate,'%Y-%m-%d') as lastDrawUpdateDate,
+			(select date_format(complaintDate,'%Y-%m-%d') from complaint inner join complaintDtl on complaintDtl.complaintId = complaint.complaintId 
+						where complaintDtl.productionId = production.productionId
+						and complaint.delFlg = '0'
+						and complaintDtl.delFlg = '0' 
+						order by complaintDate DESC
+						limit 1) as lastComplaintDate,
+			comment,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateTime productionUpdateTime,
+			updateUser,
+			delFlg
+		from production where delFlg = '0' 
+			and productionId=#{productionId}
+			and versionNo=#{versionNo}
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.Production">
+		select
+			productionId,
+			versionNo,
+			productionIdVendor,
+			descriptionC,
+			descriptionE,
+			material,
+			surface,
+			size,
+			hscode,
+			productionCname4export,
+			productionEname4export,
+			CONCAT(taxReturnRate,'') as taxReturnRate,
+			brand,
+			purpose,
+			kind,
+			(select codeName from code where categoryId = 'P_TYPE' and codeId = production.kind) as kindName,
+			vendorId,
+			(select vendorName from vendor where vendor.vendorId = production.vendorId limit 1) as vendorName,
+			customerId,
+			(select customerName from customer where customer.customerId = production.customerId limit 1) as customerName,
+			packMethod,
+			CONCAT(volume,'') as volume,
+			CONCAT(grossWeight,'') as grossWeight,
+			CONCAT(netWeight,'') as netWeight,
+			CONCAT(inside,'') as inside,
+			CONCAT(outside,'') as outside,
+			date_format(lastDrawUpdateDate,'%Y-%m-%d') as lastDrawUpdateDate,
+			(select date_format(complaintDate,'%Y-%m-%d') from complaint inner join complaintDtl on complaintDtl.complaintId = complaint.complaintId 
+						where complaintDtl.productionId = production.productionId
+						and complaint.delFlg = '0'
+						and complaintDtl.delFlg = '0' 
+						order by complaintDate DESC
+						limit 1) as lastComplaintDate,
+			comment,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateTime productionUpdateTime,
+			updateUser,
+			delFlg
+		<if test="searchOption == '0'.toString()">
+			from productionView production
+		</if>
+		<if test="searchOption != '0'.toString()">
+			from production
+		</if>
+		where delFlg = '0' 
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where production.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(productionId) like "%"#{productionId}"%"
+		</if>
+		<if test="descriptionC != null and descriptionC != ''">
+			and UPPER(descriptionC) like "%"#{descriptionC}"%"
+		</if>
+		<if test="descriptionE != null and descriptionE != ''">
+			and UPPER(descriptionE) like "%"#{descriptionE}"%"
+		</if>
+		<if test="productionCname4export != null and productionCname4export != ''">
+			and UPPER(productionCname4export) like "%"#{productionCname4export}"%"
+		</if>
+		<if test="productionEname4export != null and productionEname4export != ''">
+			and UPPER(productionEname4export) like "%"#{productionEname4export}"%"
+		</if>
+		<if test="vendorId != null and vendorId != ''">
+			and UPPER(vendorId)=#{vendorId} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and UPPER(customerId)=#{customerId}
+		</if>
+		<if test="status != null and status != ''">
+			and status=#{status}
+		</if>
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		<if test="searchOption == '0'.toString()">
+			from productionView production
+		</if>
+		<if test="searchOption != '0'.toString()">
+			from production
+		</if>
+		where delFlg = '0'
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where production.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(productionId) like "%"#{productionId}"%"
+		</if>
+		<if test="descriptionC != null and descriptionC != ''">
+			and UPPER(descriptionC) like "%"#{descriptionC}"%"
+		</if>
+		<if test="descriptionE != null and descriptionE != ''">
+			and UPPER(descriptionE) like "%"#{descriptionE}"%"
+		</if>
+		<if test="productionCname4export != null and productionCname4export != ''">
+			and UPPER(productionCname4export) like "%"#{productionCname4export}"%"
+		</if>
+		<if test="productionEname4export != null and productionEname4export != ''">
+			and UPPER(productionEname4export) like "%"#{productionEname4export}"%"
+		</if>
+		<if test="vendorId != null and vendorId != ''">
+			and UPPER(vendorId)=#{vendorId} 
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and UPPER(customerId)=#{customerId}
+		</if>
+		<if test="status != null and status != ''">
+			and status=#{status}
+		</if>
+	</select>
+	
+	<delete id="delete" parameterType="com.entity.Production">
+		delete from production 
+		where delFlg = '0' 
+			and productionId=#{productionId} 
+			and versionNo=#{versionNo} 
+	</delete>
+	
+	<insert id="insert" parameterType="com.entity.Production">
+		insert production(
+			productionId,
+			versionNo,
+			productionIdVendor,
+			descriptionC,
+			descriptionE,
+			material,
+			surface,
+			size,
+			hscode,
+			productionCname4export,
+			productionEname4export,
+			taxReturnRate,
+			brand,
+			purpose,
+			kind,
+			vendorId,
+			customerId,
+			packMethod,
+			volume,
+			grossWeight,
+			netWeight,
+			inside,
+			outside,
+			lastDrawUpdateDate,
+			comment,
+			status,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{productionId},
+			#{versionNo},
+			#{productionIdVendor},
+			#{descriptionC},
+			#{descriptionE},
+			#{material},
+			#{surface},
+			#{size},
+			#{hscode},
+			#{productionCname4export},
+			#{productionEname4export},
+			CONVERT(#{taxReturnRate}, DECIMAL(10, 2)),
+			#{brand},
+			#{purpose},
+			#{kind},
+			#{vendorId},
+			#{customerId},
+			#{packMethod},
+			CONVERT(#{volume}, DECIMAL(10, 4)),
+			CONVERT(#{grossWeight}, DECIMAL(10, 2)),
+			CONVERT(#{netWeight}, DECIMAL(10, 2)),
+			CONVERT(#{inside}, DECIMAL(10, 0)),
+			CONVERT(#{outside}, DECIMAL(10, 0)),
+			str_to_date(#{lastDrawUpdateDate},'%Y-%m-%d'),
+			#{comment},
+			#{status},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="update" parameterType="com.entity.Production">
+		update production set
+			productionIdVendor=#{productionIdVendor},
+			descriptionC=#{descriptionC},
+			descriptionE=#{descriptionE},
+			material=#{material},
+			surface=#{surface},
+			size=#{size},
+			hscode=#{hscode},
+			productionCname4export=#{productionCname4export},
+			productionEname4export=#{productionEname4export},
+			taxReturnRate=CONVERT(#{taxReturnRate}, DECIMAL(10, 2)),
+			brand=#{brand},
+			purpose=#{purpose},
+			kind=#{kind},
+			vendorId=#{vendorId},
+			customerId=#{customerId},
+			packMethod=#{packMethod},
+			volume=CONVERT(#{volume}, DECIMAL(10, 4)),
+			grossWeight=CONVERT(#{grossWeight}, DECIMAL(10, 2)),
+			netWeight=CONVERT(#{netWeight}, DECIMAL(10, 2)),
+			inside=CONVERT(#{inside}, DECIMAL(10, 0)),
+			outside=CONVERT(#{outside}, DECIMAL(10, 0)),
+			lastDrawUpdateDate=str_to_date(#{lastDrawUpdateDate},'%Y-%m-%d'),
+			comment=#{comment},
+			status=#{status},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			productionId=#{productionId}
+			and versionNo=#{versionNo}
+	</update>
+</mapper>  

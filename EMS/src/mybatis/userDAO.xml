@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.UserDAO">
+	
+	<select id="selectUserById" parameterType="map" resultType="com.entity.User">
+		select 
+			userId,
+			userNameC,
+			userNameE,
+			password,
+			category,
+			mail,
+			(select codeName from code where categoryId = 'CATEGORY' and codeId = category) as categoryName,
+			contact,
+			urgentContact,
+			date_format(birthday,'%Y-%m-%d') as birthday,
+			gender,
+			(select codeName from code where categoryId = 'GENDER' and codeId = gender) as genderName,
+			highestEducation,
+			(select codeName from code where categoryId = 'HIGHESTEDUCATION' and codeId = highestEducation) as highestEducationName,
+			position,
+			date_format(onboardDate,'%Y-%m-%d') as onboardDate,
+			date_format(seperateDate,'%Y-%m-%d') as seperateDate,
+			contractPeriod,
+			humanRelations,
+			<if test="category == 1">
+				CONCAT(salary,'') as salary,
+				welfare,
+			</if>
+			vacation,
+			address,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		from user where userId=#{userId} and delFlg = '0'
+		<if test="password != null and password != ''">
+			and password=#{password} 
+		</if>
+	</select>
+	
+	<select id="selectUserByCondition" parameterType="map" resultType="com.entity.User">
+		select
+			userId,
+			userNameC,
+			userNameE,
+			password,
+			category,
+			mail,
+			(select codeName from code where categoryId = 'CATEGORY' and codeId = category) as categoryName,
+			contact,
+			urgentContact,
+			date_format(birthday,'%Y-%m-%d') as birthday,
+			gender,
+			(select codeName from code where categoryId = 'GENDER' and codeId = gender) as genderName,
+			highestEducation,
+			(select codeName from code where categoryId = 'HIGHESTEDUCATION' and codeId = highestEducation) as highestEducationName,
+			position,
+			date_format(onboardDate,'%Y-%m-%d') as onboardDate,
+			date_format(seperateDate,'%Y-%m-%d') as seperateDate,
+			contractPeriod,
+			humanRelations,
+			<if test="category == 1">
+				CONCAT(salary,'') as salary,
+				welfare,
+			</if>
+			vacation,
+			address,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		from user where delFlg = '0'
+		<if test="userId != null and userId != ''">
+			and userId=#{userId}
+		</if>
+		<if test="userNameC != null and userNameC != ''">
+			and userNameC like "%"#{userNameC}"%"
+		</if>
+		<if test="userNameE != null and userNameE != ''">
+			and userNameE like "%"#{userNameE}"%"
+		</if>
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="selectUserCountByCondition" parameterType="map" resultType="int">
+		select count(1) from user where delFlg = '0'
+		<if test="userId != null and userId != ''">
+			and userId=#{userId}
+		</if>
+		<if test="userNameC != null and userNameC != ''">
+			and userNameC like "%"#{userNameC}"%"
+		</if>
+		<if test="userNameE != null and userNameE != ''">
+			and userNameE like "%"#{userNameE}"%"
+		</if>
+	</select>
+	
+	<update id="deleteUserById" parameterType="com.entity.User">
+		update user set 
+			delFlg = '1',
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where delFlg = '0' 
+			and userId=#{userId}
+	</update>
+	
+	<update id="passwordReset" parameterType="com.entity.User">
+		update user set 
+			password = '62C8AD0A15D9D1CA38D5DEE762A16E01',
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where delFlg = '0' 
+			and userId=#{userId}
+	</update>
+	
+	<update id="passwordUpdate" parameterType="com.entity.User">
+		update user set 
+			password = #{passwordNew1},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where delFlg = '0' 
+			and userId=#{userId}
+			and password=#{passwordOld}
+	</update>
+	
+	<insert id="insertUser" parameterType="com.entity.User">
+		insert user(
+			userId,
+			userNameC,
+			userNameE,
+			password,
+			category,
+			mail,
+			contact,
+			urgentContact,
+			birthday,
+			gender,
+			highestEducation,
+			position,
+			onboardDate,
+			seperateDate,
+			contractPeriod,
+			humanRelations,
+			salary,
+			welfare,
+			vacation,
+			address,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{userId},
+			#{userNameC},
+			#{userNameE},
+			'62C8AD0A15D9D1CA38D5DEE762A16E01',
+			#{category},
+			#{mail},
+			#{contact},
+			#{urgentContact},
+			str_to_date(#{birthday},'%Y-%m-%d'),
+			#{gender},
+			#{highestEducation},
+			#{position},
+			str_to_date(#{onboardDate},'%Y-%m-%d'),
+			str_to_date(#{seperateDate},'%Y-%m-%d'),
+			#{contractPeriod},
+			#{humanRelations},
+			CONVERT(#{salary},SIGNED),
+			#{welfare},
+			#{vacation},
+			#{address},
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<update id="updateUser" parameterType="com.entity.User">
+		update user set
+			userNameC=#{userNameC},
+			userNameE=#{userNameE},
+			category=#{category},
+			mail=#{mail},
+			contact=#{contact},
+			urgentContact=#{urgentContact},
+			birthday=str_to_date(#{birthday},'%Y-%m-%d'),
+			gender=#{gender},
+			highestEducation=#{highestEducation},
+			position=#{position},
+			onboardDate=str_to_date(#{onboardDate},'%Y-%m-%d'),
+			seperateDate=str_to_date(#{seperateDate},'%Y-%m-%d'),
+			contractPeriod=#{contractPeriod},
+			humanRelations=#{humanRelations},
+			<if test="loginUserCategory == 1">
+			salary=CONVERT(#{salary},SIGNED),
+			welfare=#{welfare},
+			</if>
+			vacation=#{vacation},
+			address=#{address},
+			comment=#{comment},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			userId=#{userId}
+	</update>
+</mapper>  

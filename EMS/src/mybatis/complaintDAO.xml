@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.dao.ComplaintDAO">
+	
+	<select id="getComplaintId4New" parameterType="map" resultType="String">
+		select
+			max(complaintId)
+		from complaint
+		where complaintId like "%"#{nowDate}"%"
+			and delFlg = '0'
+	</select>
+	
+	<select id="findByKey" parameterType="map" resultType="com.entity.Complaint">
+		select
+			complaintId,
+			complaintDate,
+			customer.customerId,
+			customer.customerName,
+			customer.updateTime customerUpdateTime,
+			complaint.comment,
+			complaint.replyDate,
+			complaint.alertDateFrom,
+			complaint.dealDeadline,
+			complaint.dealDate,
+			complaint.createTime,
+			complaint.createUser,
+			complaint.updateTime,
+			complaint.updateUser,
+			complaint.delFlg
+		from complaint inner join customer on complaint.customerId = customer.customerId
+			and customer.delFlg = '0'
+		where complaint.delFlg = '0' 
+			and complaint.complaintId=#{complaintId}
+	</select>
+	
+	<select id="findDtlByKey" parameterType="map" resultType="com.entity.ComplaintDtl">
+		select
+			complaintId,
+			complaintDtl.tradeOrderId,
+			temp.po,
+			production.productionId,
+			production.versionNo,
+			production.descriptionC,
+			production.descriptionE,
+			production.updateTime productionUpdateTime,
+			vendor.vendorId,
+			vendor.vendorName,
+			complaintDtl.quantity,
+			complaintDtl.boxAmount,
+			complaintDtl.handleType,
+			temp.volume,
+			temp.grossWeight,
+			temp.netWeight,
+			temp.inside,
+			temp.outside,
+			temp.tUnitPrice,
+			temp.iUnitPrice,
+			(select sum(receiptDtl4C.quantity) from receiptDtl4C 
+			where complaintDtl.complaintId = receiptDtl4C.complaintId 
+			and complaintDtl.tradeOrderId = receiptDtl4C.tradeOrderId 
+			and complaintDtl.productionId = receiptDtl4C.productionId
+			and complaintDtl.versionNo = receiptDtl4C.versionNo
+			and complaintDtl.handleType = '1'
+			and receiptDtl4C.delFlg = '0') quantitySent,
+			complaintDtl.comment,
+			complaintDtl.createTime,
+			complaintDtl.createUser,
+			complaintDtl.updateTime,
+			complaintDtl.updateUser,
+			complaintDtl.delFlg
+		from complaintDtl
+		inner join production on complaintDtl.productionId = production.productionId 
+			and complaintDtl.versionNo = production.versionNo 
+			and production.delFlg = '0'
+		inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		left join (select 
+			tradeOrder.tradeOrderId,
+			tradeOrder.po,
+			tradeOrderDtl.productionId,
+			tradeOrderDtl.versionNo,
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			interTradeOrderDtl.unitPrice iUnitPrice
+		from tradeOrder 
+			    inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+				inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+				inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+					and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+					and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo	
+		where tradeOrder.status in ('1', '2')	
+		and tradeOrder.delFlg = '0') temp on temp.tradeOrderId = complaintDtl.tradeOrderId
+		and temp.productionId = complaintDtl.productionId
+		and temp.versionNo = complaintDtl.versionNo	
+		where complaintDtl.delFlg = '0' 
+			and complaintDtl.complaintId=#{complaintId} 
+		order by complaintDtl.tradeOrderId, production.productionId, production.versionNo desc
+	</select>
+	
+	<select id="findDtlByTradeOrderId" parameterType="map" resultType="com.entity.ComplaintDtl">
+		select
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			interTradeOrderDtl.unitPrice iUnitPrice
+		from tradeOrder
+	    inner join tradeOrderDtl on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrderDtl.delFlg = '0'
+		inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+		inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+			and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+			and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo			
+		where tradeOrder.delFlg = '0' 
+			and tradeOrder.tradeOrderId=#{tradeOrderId} 
+			and tradeOrder.status in ('1', '2')
+			and tradeOrderDtl.productionId=#{productionId} 
+			and tradeOrderDtl.versionNo=#{versionNo} 
+	</select>
+	
+	<select id="findByProperty" parameterType="map" resultType="com.entity.Complaint">
+		select
+			complaintId,
+			complaintDate,
+			customer.customerId,
+			customer.customerName,
+			complaint.comment,
+			complaint.replyDate,
+			complaint.alertDateFrom,
+			complaint.dealDeadline,
+			complaint.dealDate,
+			complaint.createTime,
+			complaint.createUser,
+			complaint.updateTime,
+			complaint.updateUser,
+			complaint.delFlg
+		from complaint inner join customer on complaint.customerId = customer.customerId
+			and customer.delFlg = '0'
+		where complaint.delFlg = '0' 
+		<if test="complaintId != null and complaintId != ''">
+			and UPPER(complaint.complaintId) like "%"#{complaintId}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and complaint.customerId=#{customerId}
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from complaintDtl 
+						where UPPER(complaintDtl.productionId) like "%"#{productionId}"%"
+						and complaintDtl.complaintId = complaint.complaintId 
+						and complaintDtl.delFlg = '0')
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="isTopFlg == '1'.toString()">
+			and (
+					complaint.replyDate is null
+					or 
+					(date_format(complaint.alertDateFrom,'%Y-%m-%d') &lt;= date_format(now(),'%Y-%m-%d') 
+						and date_format(now(),'%Y-%m-%d') &gt;= date_format(complaint.alertDateFrom,'%Y-%m-%d')
+						and complaint.dealDate is null
+					)
+				)
+		</if>
+		order by complaintId DESC
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindByProperty" parameterType="map" resultType="int">
+		select 
+			count(1)
+		from complaint inner join customer on complaint.customerId = customer.customerId
+			and customer.delFlg = '0'
+		where complaint.delFlg = '0' 
+		<if test="complaintId != null and complaintId != ''">
+			and UPPER(complaint.complaintId) like "%"#{complaintId}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and complaint.customerId=#{customerId}
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and exists (select 1 from complaintDtl 
+						where UPPER(complaintDtl.productionId) like "%"#{productionId}"%"
+						and complaintDtl.complaintId = complaint.complaintId 
+						and complaintDtl.delFlg = '0')
+		</if>
+		<if test="isCustomerRefFlg == '1'.toString()">
+			and exists (select 1 from userCustomerLinkRef
+						where customer.customerId = userCustomerLinkRef.customerId
+						and userCustomerLinkRef.userId = #{userId}
+						and userCustomerLinkRef.delFlg = '0'
+			)
+		</if>
+		<if test="isTopFlg == '1'.toString()">
+			and (
+					complaint.replyDate is null
+					or 
+					(date_format(complaint.alertDateFrom,'%Y-%m-%d') &lt;= date_format(now(),'%Y-%m-%d') 
+						and date_format(now(),'%Y-%m-%d') &gt;= date_format(complaint.alertDateFrom,'%Y-%m-%d')
+						and complaint.dealDate is null
+					)
+				)
+		</if>
+	</select>
+	
+	<select id="findPopByProperty" parameterType="map" resultType="com.entity.TradeOrderPop">
+		select
+			complaintDtl.complaintId,
+			tradeOrder.tradeOrderId,
+			tradeOrder.po,
+			tradeOrder.contractNo,
+			tradeOrder.tradeOrderCreateDate,
+			tradeOrder.updateTime tradeOrderUpdateTime,
+			production.productionId,
+			production.versionNo,
+			production.descriptionE,
+			production.descriptionC,
+			production.hscode,
+			production.productionEName4Export,
+			production.productionCName4Export,
+			production.updateTime productionUpdateTime,
+			interTradeOrderDtl.volume,
+			interTradeOrderDtl.grossWeight,
+			interTradeOrderDtl.netWeight,
+			interTradeOrderDtl.inside,
+			interTradeOrderDtl.outside,
+			vendor.vendorId,
+			vendor.vendorName,
+			complaintDtl.quantity tQuantity,
+			tradeOrderDtl.unitPrice tUnitPrice,
+			interTradeOrderDtl.unitPrice iUnitPrice,
+			complaintDtl.boxAmount,
+			(select sum(receiptDtl4C.quantity) from receiptDtl4C 
+			where complaintDtl.complaintId = receiptDtl4C.complaintId
+			and complaintDtl.tradeOrderId = receiptDtl4C.tradeOrderId 
+			and complaintDtl.productionId = receiptDtl4C.productionId
+			and complaintDtl.versionNo = receiptDtl4C.versionNo
+			and complaintDtl.handleType = '1'
+			and receiptDtl4C.delFlg = '0') quantitySent,
+			complaint.updateTime complaintUpdateTime
+		from complaintDtl inner join tradeOrderDtl on complaintDtl.tradeOrderId = tradeOrderDtl.tradeOrderId
+				and tradeOrderDtl.productionId = complaintDtl.productionId
+				and tradeOrderDtl.versionNo = complaintDtl.versionNo
+				and complaintDtl.handleType = '1'
+				and complaintDtl.delFlg = '0'
+			inner join tradeOrder on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrder.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo
+			inner join production on tradeOrderDtl.productionId = production.productionId and production.delFlg = '0'
+				and tradeOrderDtl.versionNo = production.versionNo 
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+			inner join complaint on complaint.complaintId = complaintDtl.complaintId and complaint.delFlg = '0'
+		where 1 = 1
+		<if test="isStatusRefFlg == '1'.toString()">
+			and tradeOrder.status > '0'
+		</if>
+		<if test="complaintId != null and complaintId != ''">
+			and complaintDtl.complaintId like "%"#{complaintId}"%"
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(complaintDtl.productionId) like "%"#{productionId}"%"
+		</if>
+		order by complaintDtl.complaintId, tradeOrder.tradeOrderId, production.productionId
+		limit #{startIndex}, #{pageSize}
+	</select>
+	
+	<select id="countFindPopByProperty" parameterType="map" resultType="int">
+		select
+			count(1)
+		from complaintDtl inner join tradeOrderDtl on complaintDtl.tradeOrderId = tradeOrderDtl.tradeOrderId
+				and tradeOrderDtl.productionId = complaintDtl.productionId
+				and tradeOrderDtl.versionNo = complaintDtl.versionNo
+				and complaintDtl.handleType = '1'
+				and complaintDtl.delFlg = '0'
+			inner join tradeOrder on tradeOrder.tradeOrderId = tradeOrderDtl.tradeOrderId and tradeOrder.delFlg = '0'
+			inner join interTradeOrder on tradeOrder.tradeOrderId = interTradeOrder.tradeOrderId and interTradeOrder.delFlg = '0'
+			inner join interTradeOrderDtl on interTradeOrder.interTradeOrderId = interTradeOrderDtl.interTradeOrderId and interTradeOrderDtl.delFlg = '0'
+				and tradeOrderDtl.productionId = interTradeOrderDtl.productionId
+				and tradeOrderDtl.versionNo = interTradeOrderDtl.versionNo
+			inner join production on tradeOrderDtl.productionId = production.productionId and production.delFlg = '0'
+				and tradeOrderDtl.versionNo = production.versionNo 
+			inner join vendor on production.vendorId = vendor.vendorId and vendor.delFlg = '0'
+		where 1 = 1
+		<if test="isStatusRefFlg == '1'.toString()">
+			and tradeOrder.status > '0'
+		</if>
+		<if test="complaintId != null and complaintId != ''">
+			and complaintDtl.complaintId like "%"#{complaintId}"%"
+		</if>
+		<if test="tradeOrderId != null and tradeOrderId != ''">
+			and tradeOrder.tradeOrderId like "%"#{tradeOrderId}"%"
+		</if>
+		<if test="po != null and po != ''">
+			and tradeOrder.po like "%"#{po}"%"
+		</if>
+		<if test="contractNo != null and contractNo != ''">
+			and tradeOrder.contractNo like "%"#{contractNo}"%"
+		</if>
+		<if test="customerId != null and customerId != ''">
+			and tradeOrder.customerId=#{customerId} 
+		</if>
+		<if test="productionId != null and productionId != ''">
+			and UPPER(complaintDtl.productionId) like "%"#{productionId}"%"
+		</if>
+	</select>
+	
+	<update id="update" parameterType="com.entity.Complaint">
+		update complaint set
+			complaintDate=str_to_date(#{complaintDate},'%Y-%m-%d'),
+			customerId=#{customerId},
+			replyDate=str_to_date(#{replyDate},'%Y-%m-%d'),
+			alertDateFrom=str_to_date(#{alertDateFrom},'%Y-%m-%d'),
+			dealDeadline=str_to_date(#{dealDeadline},'%Y-%m-%d'),
+			dealDate=str_to_date(#{dealDate},'%Y-%m-%d'),
+			comment=#{comment},
+			updateTime=#{updateTime},
+			updateUser=#{updateUser}
+		where 
+			complaintId=#{complaintId}
+	</update>
+	
+	<delete id="delete" parameterType="com.entity.Complaint">
+		delete from complaint 
+		where delFlg = '0' 
+			and complaintId=#{complaintId} 
+	</delete>
+	
+	<delete id="deleteDtl" parameterType="com.entity.Complaint">
+		delete from complaintDtl
+		where delFlg = '0' 
+			and complaintId=#{complaintId} 
+	</delete>
+
+	<insert id="insert" parameterType="com.entity.Complaint">
+		insert complaint(
+			complaintId,
+			complaintDate,
+			customerId,
+			replyDate,
+			alertDateFrom,
+			dealDeadline,
+			dealDate,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{complaintId},
+			str_to_date(#{complaintDate},'%Y-%m-%d'),
+			#{customerId},
+			str_to_date(#{replyDate},'%Y-%m-%d'),
+			str_to_date(#{alertDateFrom},'%Y-%m-%d'),
+			str_to_date(#{dealDeadline},'%Y-%m-%d'),
+			str_to_date(#{dealDate},'%Y-%m-%d'),
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+	<insert id="insertDtl" parameterType="com.entity.ComplaintDtl">
+		insert complaintDtl(
+			complaintId,
+			tradeOrderId,
+			productionId,
+			versionNo,
+			quantity,
+			boxAmount,
+			handleType,
+			comment,
+			createTime,
+			createUser,
+			updateTime,
+			updateUser,
+			delFlg
+		) values(
+			#{complaintId},
+			#{tradeOrderId},
+			#{productionId},
+			#{versionNo},
+			#{quantity},
+			#{boxAmount},
+			#{handleType},
+			#{comment},
+			#{createTime},
+			#{createUser},
+			#{updateTime},
+			#{updateUser},
+			'0'
+		)
+	</insert>
+	
+</mapper>  

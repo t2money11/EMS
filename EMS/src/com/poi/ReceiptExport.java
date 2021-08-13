@@ -1426,10 +1426,10 @@ public class ReceiptExport {
     	CommonExport.writeInTemplate(sheet, contractNo, 9, 6, XSSFCell.CELL_TYPE_STRING, null);
     	
     	// 唛头及编号
-    	CommonExport.writeInTemplate(sheet, receipt.getMark(), 15, 0, XSSFCell.CELL_TYPE_STRING, null);
+    	CommonExport.writeInTemplate(sheet, receipt.getMark(), 17, 0, XSSFCell.CELL_TYPE_STRING, null);
     	
     	//重新设置行号
-    	row = 15;
+    	row = 17;
     	
     	XSSFRow sourceRow = null;
 		XSSFRow targetRow = null;
@@ -1481,7 +1481,7 @@ public class ReceiptExport {
         				
         				sheet.shiftRows(row, sheet.getLastRowNum(), 1, true, false);
         				int startRow = row;
-        				sourceRow = sheet.getRow(15);
+        				sourceRow = sheet.getRow(17);
         				targetRow = sheet.createRow(startRow);
         				targetRow.setHeight(sourceRow.getHeight());
         				short m;
@@ -1520,10 +1520,10 @@ public class ReceiptExport {
         					
         					if(j == 0){
         						
-        						sourceRow = sheet.getRow(16);
+        						sourceRow = sheet.getRow(18);
         					}else{
         						
-        						sourceRow = sheet.getRow(17);
+        						sourceRow = sheet.getRow(19);
         					}
         					targetRow = sheet.createRow(startRow);
         					targetRow.setHeight(sourceRow.getHeight());
@@ -1584,15 +1584,15 @@ public class ReceiptExport {
     	row++;
     	
     	//总数量
-    	CommonExport.writeInTemplate(sheet, String.format("SUM(D%d:D%d)", 17, row), row, 3, XSSFCell.CELL_TYPE_FORMULA, null);
+    	CommonExport.writeInTemplate(sheet, String.format("SUM(D%d:D%d)", 19, row), row, 3, XSSFCell.CELL_TYPE_FORMULA, null);
     	//总箱数
-    	CommonExport.writeInTemplate(sheet, String.format("SUM(E%d:E%d)", 17, row), row, 4, XSSFCell.CELL_TYPE_FORMULA, null);
+    	CommonExport.writeInTemplate(sheet, String.format("SUM(E%d:E%d)", 19, row), row, 4, XSSFCell.CELL_TYPE_FORMULA, null);
     	//总毛重
-    	CommonExport.writeInTemplate(sheet, String.format("SUM(F%d:F%d)", 17, row), row, 5, XSSFCell.CELL_TYPE_FORMULA, null);
+    	CommonExport.writeInTemplate(sheet, String.format("SUM(F%d:F%d)", 19, row), row, 5, XSSFCell.CELL_TYPE_FORMULA, null);
     	//总净重
-    	CommonExport.writeInTemplate(sheet, String.format("SUM(G%d:G%d)", 17, row), row, 6, XSSFCell.CELL_TYPE_FORMULA, null);
+    	CommonExport.writeInTemplate(sheet, String.format("SUM(G%d:G%d)", 19, row), row, 6, XSSFCell.CELL_TYPE_FORMULA, null);
     	//总体积
-    	CommonExport.writeInTemplate(sheet, String.format("SUM(H%d:H%d)", 17, row), row, 7, XSSFCell.CELL_TYPE_FORMULA, null);
+    	CommonExport.writeInTemplate(sheet, String.format("SUM(H%d:H%d)", 19, row), row, 7, XSSFCell.CELL_TYPE_FORMULA, null);
     }
     
     private void setSheet8(Receipt receipt, XSSFWorkbook wb) throws Exception{
